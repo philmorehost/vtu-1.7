@@ -179,6 +179,10 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                                 <i class="fas fa-code w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
                                 <span x-show="!sidebarCollapsed">API Manager</span>
                             </a>
+                            <a href="/admin/service_providers.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
+                                <i class="fas fa-handshake w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Service Providers</span>
+                            </a>
                         </div>
                     </div>
                     <!-- Security Menu with Submenu -->
