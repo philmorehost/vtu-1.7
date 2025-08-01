@@ -130,7 +130,20 @@ try {
                 $stmt->execute([$detectedNetwork]);
                 $networkData = $stmt->fetch(PDO::FETCH_ASSOC);
                 
-                echo json_encode(['success' => true, 'network' => $networkData]);
+                if ($networkData) {
+                    // Ensure all data is UTF-8 encoded to prevent json_encode failure
+                    array_walk_recursive($networkData, function (&$item, $key) {
+                        if (is_string($item)) {
+                            // Use mb_convert_encoding for more reliable UTF-8 conversion
+                            if (!mb_check_encoding($item, 'UTF-8')) {
+                                $item = mb_convert_encoding($item, 'UTF-8', 'auto');
+                            }
+                        }
+                    });
+                    echo json_encode(['success' => true, 'network' => $networkData]);
+                } else {
+                    echo json_encode(['success' => false, 'message' => 'Network currently unavailable']);
+                }
             } else {
                 echo json_encode(['success' => false, 'message' => 'Network not detected']);
             }
