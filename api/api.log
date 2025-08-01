@@ -1,0 +1,3 @@
+------------------
+Getting messages for user: 1
+Executing query: SELECT * FROM chat WHERE (sender_id = ? AND recipient_id = 1) OR (sender_id = 1 AND recipient_id = ?) ORDER BY created_at ASC

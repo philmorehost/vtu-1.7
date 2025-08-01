@@ -1,0 +1,177 @@
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5;
+    color: #333;
+}
+/* Dark mode styles */
+html.dark {
+    background-color: #1a202c; /* Dark background */
+    color: #e2e8f0; /* Light text */
+}
+html.dark .bg-white {
+    background-color: #2d3748; /* Darker card background */
+    color: #e2e8f0;
+}
+html.dark .text-gray-800 {
+    color: #e2e8f0;
+}
+html.dark .text-gray-700 {
+    color: #cbd5e0;
+}
+html.dark .text-gray-600 {
+    color: #a0aec0;
+}
+html.dark .border-gray-200 {
+    border-color: #4a5568;
+}
+html.dark .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+}
+html.dark .bg-gray-50 {
+    background-color: #4a5568;
+}
+html.dark input, html.dark select, html.dark textarea {
+    background-color: #4a5568;
+    border-color: #616e7f;
+    color: #e2e8f0;
+}
+html.dark input::placeholder, html.dark textarea::placeholder {
+    color: #a0aec0;
+}
+html.dark .bg-blue-50 {
+    background-color: #2b6cb0; /* Darker blue for light blue elements */
+    color: #e2e8f0;
+}
+html.dark .hover\:bg-blue-100:hover {
+    background-color: #3182ce;
+}
+html.dark .bg-gray-100 {
+    background-color: #4a5568;
+}
+html.dark .hover\:bg-gray-100:hover {
+    background-color: #616e7f;
+}
+html.dark .bg-gray-200 {
+    background-color: #616e7f;
+}
+html.dark .hover\:bg-gray-300:hover {
+    background-color: #718096;
+}
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #4a5568;
+}
+html.dark .hover\:bg-gray-50:hover {
+    background-color: #4a5568;
+}
+html.dark .form-radio {
+    background-color: #4a5568;
+    border-color: #616e7f;
+}
+html.dark .peer-checked\:bg-blue-600 {
+    background-color: #3182ce; /* Adjusted for dark mode */
+}
+html.dark .peer-checked\:after\:border-white {
+    border-color: #e2e8f0;
+}
+html.dark .bg-gray-300 {
+    background-color: #718096;
+}
+html.dark .bg-blue-500 {
+    background-color: #3182ce;
+}
+
+/* Hide all pages by default, JavaScript will show the active one */
+.page {
+    display: none;
+}
+/* Custom scrollbar for virtual accounts section */
+.scroll-container::-webkit-scrollbar {
+    height: 8px;
+}
+.scroll-container::-webkit-scrollbar-track {
+    background: #e0e0e0;
+    border-radius: 10px;
+}
+.scroll-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+.scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+html.dark .scroll-container::-webkit-scrollbar-track {
+    background: #4a5568;
+}
+html.dark .scroll-container::-webkit-scrollbar-thumb {
+    background: #a0aec0;
+}
+html.dark .scroll-container::-webkit-scrollbar-thumb:hover {
+    background: #cbd5e0;
+}
+
+/* Modal specific styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-content {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    max-width: 90%;
+    width: 400px;
+    position: relative;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+html.dark .modal-content {
+    background-color: #2d3748;
+    color: #e2e8f0;
+}
+.modal-content-lg {
+    width: 600px; /* Larger width for phonebook manager and referral details */
+}
+.notification-dot {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: white;
+    font-weight: bold;
+}
+.admin-message {
+    background-color: #d4edda;
+    color: #155724;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    max-width: 75%;
+    align-self: flex-end; /* right */
+    text-align: right;
+}
+.user-message {
+    background-color: #f1f1f1;
+    color: #333;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    max-width: 75%;
+    align-self: flex-start; /* left */
+    text-align: left;
+}
