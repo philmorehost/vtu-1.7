@@ -1942,11 +1942,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDataRecipientCountAndCost();
     });
 
-    dataPhoneNumberInput.addEventListener('input', () => {
+    dataPhoneNumberInput.addEventListener('input', async () => {
         if (!dataBulkPurchaseToggle.checked) {
             const phoneNumber = dataPhoneNumberInput.value;
             if (!dataNetworkOverrideToggle.checked) {
-                const detected = detectNetwork(phoneNumber);
+                const detected = await detectNetworkFromPhone(phoneNumber);
                 dataDetectedNetworkDisplay.textContent = detected;
                 if (detected !== 'N/A' && detected !== 'Unknown') {
                     loadDataPlans(detected);
