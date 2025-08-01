@@ -12,10 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
         switch ($_POST['action']) {
             case 'add_product':
-                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, service_provider_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $_POST['service_type'],
                     $_POST['network_id'] ?: null,
+                    $_POST['service_provider_id'] ?: null,
                     $_POST['name'],
                     $_POST['plan_code'],
                     (float)$_POST['amount'],
@@ -29,8 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 exit;
                 
             case 'update_product':
-                $stmt = $pdo->prepare("UPDATE service_products SET name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=? WHERE id=?");
+                $stmt = $pdo->prepare("UPDATE service_products SET service_type=?, network_id=?, service_provider_id=?, name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=? WHERE id=?");
                 $stmt->execute([
+                    $_POST['service_type'],
+                    $_POST['network_id'] ?: null,
+                    $_POST['service_provider_id'] ?: null,
                     $_POST['name'],
                     $_POST['plan_code'],
                     (float)$_POST['amount'],
@@ -99,6 +103,14 @@ try {
     $networks = $stmt->fetchAll();
 } catch (Exception $e) {
     $networks = [];
+}
+
+// Fetch service providers for dropdowns
+try {
+    $stmt = $pdo->query("SELECT * FROM service_providers ORDER BY name ASC");
+    $service_providers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    $service_providers = [];
 }
 ?>
 
@@ -322,12 +334,21 @@ try {
                                 <option value="giftcard">Gift Card</option>
                             </select>
                         </div>
-                        <div>
+                        <div id="network-field" class="hidden">
                             <label class="block text-sm font-medium text-gray-700">Network</label>
                             <select id="productNetwork" name="network_id" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                                 <option value="">All Networks</option>
                                 <?php foreach ($networks as $network): ?>
                                 <option value="<?= $network['id'] ?>"><?= htmlspecialchars($network['display_name'] ?? '') ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div id="provider-field" class="hidden">
+                            <label class="block text-sm font-medium text-gray-700">Service Provider</label>
+                            <select id="productProvider" name="service_provider_id" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                                <option value="">Select Provider</option>
+                                <?php foreach ($service_providers as $provider): ?>
+                                <option value="<?= $provider['id'] ?>" data-service-type="<?= $provider['service_type'] ?>"><?= htmlspecialchars($provider['name'] ?? '') ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -461,12 +482,35 @@ document.getElementById('productServiceType').addEventListener('change', (e) => 
 });
 
 function toggleServiceFields(serviceType) {
+    const networkField = document.getElementById('network-field');
+    const providerField = document.getElementById('provider-field');
     const dataFields = document.getElementById('dataFields');
-    
-    if (serviceType === 'data') {
-        dataFields.classList.remove('hidden');
-    } else {
-        dataFields.classList.add('hidden');
+    const productProviderSelect = document.getElementById('productProvider');
+
+    // Hide all optional fields first
+    networkField.classList.add('hidden');
+    providerField.classList.add('hidden');
+    dataFields.classList.add('hidden');
+
+    // Show fields based on service type
+    if (serviceType === 'data' || serviceType === 'airtime') {
+        networkField.classList.remove('hidden');
+        if (serviceType === 'data') {
+            dataFields.classList.remove('hidden');
+        }
+    } else if (serviceType) {
+        providerField.classList.remove('hidden');
+        // Filter providers based on the selected service type
+        const options = productProviderSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === "") continue;
+            const optionServiceType = options[i].getAttribute('data-service-type');
+            if (optionServiceType === serviceType) {
+                options[i].style.display = '';
+            } else {
+                options[i].style.display = 'none';
+            }
+        }
     }
 }
 
@@ -517,6 +561,7 @@ document.querySelectorAll('.edit-product-btn').forEach(btn => {
                 document.getElementById('productId').value = product.id;
                 document.getElementById('productServiceType').value = product.service_type;
                 document.getElementById('productNetwork').value = product.network_id || '';
+                document.getElementById('productProvider').value = product.service_provider_id || '';
                 document.getElementById('productName').value = product.name;
                 document.getElementById('productPlanCode').value = product.plan_code || '';
                 document.getElementById('productAmount').value = product.amount;
