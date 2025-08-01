@@ -385,7 +385,11 @@ document.addEventListener('DOMContentLoaded', () => {
     async function detectNetwork(phoneNumber) {
         try {
             const response = await fetch(`api/services.php?action=detect_network&phone=${phoneNumber}`);
-            const result = await response.json();
+            const text = await response.text(); // Get response as text
+            console.log('--- Raw Server Response for Network Detection ---');
+            console.log(text);
+            console.log('---------------------------------------------');
+            const result = JSON.parse(text); // Manually parse to trigger original error if JSON is valid
             
             if (result.success) {
                 return result.network;
