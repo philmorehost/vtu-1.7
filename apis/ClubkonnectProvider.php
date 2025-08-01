@@ -23,7 +23,7 @@ class ClubkonnectProvider extends BaseApiProvider {
     }
     
     public function getSupportedServices() {
-        return ['airtime', 'data', 'cable_tv', 'electricity'];
+        return ['airtime', 'data', 'cable_tv', 'electricity', 'betting', 'recharge_card'];
     }
     
     public function getRequiredConfig() {
@@ -219,6 +219,93 @@ class ClubkonnectProvider extends BaseApiProvider {
                     'Balance retrieved successfully',
                     $response
                 );
+            } else {
+                return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code']);
+            }
+        } catch (Exception $e) {
+            return $this->formatResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
+    
+    public function fundBetting($customerId, $amount, $platform) {
+        $this->validateConfig();
+        
+        $data = [
+            'apikey' => $this->apiKey,
+            'service' => 'betting',
+            'customer_id' => $customerId,
+            'amount' => $amount,
+            'platform' => $platform
+        ];
+        
+        try {
+            $result = $this->makeRequest('', $data, 'POST');
+            
+            if ($result['http_code'] === 200) {
+                $response = $result['response'];
+                
+                if (isset($response['status']) && $response['status'] === 'successful') {
+                    return $this->formatResponse(
+                        true,
+                        'Betting account funding successful',
+                        $response,
+                        $response['transactionid'] ?? null
+                    );
+                } else {
+                    return $this->formatResponse(
+                        false,
+                        $response['message'] ?? 'Betting account funding failed',
+                        $response
+                    );
+                }
+            } else {
+                return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code']);
+            }
+        } catch (Exception $e) {
+            return $this->formatResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
+    
+    public function purchaseRechargeCard($network, $amount, $quantity = 1) {
+        $this->validateConfig();
+        
+        $networkMap = [
+            'MTN' => '01',
+            'GLO' => '02', 
+            'AIRTEL' => '03',
+            '9MOBILE' => '04'
+        ];
+        
+        $networkCode = $networkMap[$network] ?? '01';
+        
+        $data = [
+            'apikey' => $this->apiKey,
+            'service' => 'recharge_card',
+            'network' => $networkCode,
+            'amount' => $amount,
+            'quantity' => $quantity
+        ];
+        
+        try {
+            $result = $this->makeRequest('', $data, 'POST');
+            
+            if ($result['http_code'] === 200) {
+                $response = $result['response'];
+                
+                if (isset($response['status']) && $response['status'] === 'successful') {
+                    return $this->formatResponse(
+                        true,
+                        'Recharge card purchase successful',
+                        $response,
+                        $response['transactionid'] ?? null
+                    );
+                } else {
+                    return $this->formatResponse(
+                        false,
+                        $response['message'] ?? 'Recharge card purchase failed',
+                        $response
+                    );
+                }
             } else {
                 return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code']);
             }
