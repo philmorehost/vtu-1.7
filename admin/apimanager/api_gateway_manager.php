@@ -87,6 +87,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $provider = $stmt->fetch();
                 echo json_encode(['success' => true, 'data' => $provider]);
                 exit;
+
+            case 'get_route':
+                $stmt = $pdo->prepare("SELECT * FROM api_routes WHERE id=?");
+                $stmt->execute([(int)$_POST['id']]);
+                $route = $stmt->fetch();
+                echo json_encode(['success' => true, 'data' => $route]);
+                exit;
+
+            case 'update_route':
+                // A more complete implementation would have validation
+                $stmt = $pdo->prepare("UPDATE api_routes SET service_type=?, network_id=?, api_provider_id=?, endpoint=?, method=?, request_mapping=?, response_mapping=?, priority=?, status=? WHERE id=?");
+                $stmt->execute([
+                    $_POST['service_type'],
+                    $_POST['network_id'] ?: null,
+                    (int)$_POST['api_provider_id'],
+                    $_POST['endpoint'],
+                    $_POST['method'],
+                    $_POST['request_mapping'],
+                    $_POST['response_mapping'],
+                    (int)$_POST['priority'],
+                    $_POST['status'],
+                    (int)$_POST['id']
+                ]);
+                echo json_encode(['success' => true, 'message' => 'API Route updated successfully']);
+                exit;
+
+            case 'delete_route':
+                $stmt = $pdo->prepare("DELETE FROM api_routes WHERE id=?");
+                $stmt->execute([(int)$_POST['id']]);
+                echo json_encode(['success' => true, 'message' => 'API Route deleted successfully']);
+                exit;
         }
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
@@ -384,6 +415,7 @@ try {
                 </button>
             </div>
             <form id="routeForm">
+                <input type="hidden" id="routeId" name="id">
                 <div class="grid grid-cols-1 gap-4">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
@@ -550,7 +582,9 @@ document.getElementById('providerForm').addEventListener('submit', async (e) => 
 document.getElementById('routeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    formData.append('action', 'add_route');
+    const routeId = document.getElementById('routeId').value;
+
+    formData.append('action', routeId ? 'update_route' : 'add_route');
     
     try {
         const response = await fetch('', {
@@ -603,6 +637,73 @@ document.querySelectorAll('.edit-provider-btn').forEach(btn => {
             }
         } catch (error) {
             alert('Error: ' + error.message);
+        }
+    });
+});
+
+// Edit Route
+document.querySelectorAll('.edit-route-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const routeId = btn.getAttribute('data-id');
+        const formData = new FormData();
+        formData.append('action', 'get_route');
+        formData.append('id', routeId);
+
+        try {
+            const response = await fetch('', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                const route = result.data;
+                document.querySelector('#routeModal h3').textContent = 'Edit API Route';
+                document.getElementById('routeId').value = route.id;
+                document.querySelector('#routeForm [name="service_type"]').value = route.service_type;
+                document.querySelector('#routeForm [name="network_id"]').value = route.network_id || '';
+                document.querySelector('#routeForm [name="api_provider_id"]').value = route.api_provider_id;
+                document.querySelector('#routeForm [name="endpoint"]').value = route.endpoint;
+                document.querySelector('#routeForm [name="method"]').value = route.method;
+                document.querySelector('#routeForm [name="request_mapping"]').value = route.request_mapping;
+                document.querySelector('#routeForm [name="response_mapping"]').value = route.response_mapping;
+                document.querySelector('#routeForm [name="priority"]').value = route.priority;
+                document.querySelector('#routeForm [name="status"]').value = route.status;
+                routeModal.classList.remove('hidden');
+            } else {
+                alert('Error loading route data');
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    });
+});
+
+// Delete Route
+document.querySelectorAll('.delete-route-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this API route?')) {
+            const routeId = btn.getAttribute('data-id');
+            const formData = new FormData();
+            formData.append('action', 'delete_route');
+            formData.append('id', routeId);
+
+            try {
+                const response = await fetch('', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
         }
     });
 });
