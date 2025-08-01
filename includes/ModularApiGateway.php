@@ -230,7 +230,7 @@ class ModularApiGateway {
             // Log transaction
             $this->logTransaction('bulk_sms', $providerConfig['id'], $result, [
                 'message' => $message,
-                'recipients_count' => count($recipients),
+                'recipients_count' => is_array($recipients) ? count($recipients) : count(explode(',', $recipients)),
                 'sender_id' => $senderId
             ]);
             

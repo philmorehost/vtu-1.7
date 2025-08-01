@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $providerInfo['name'],
                     $_POST['provider_module'],
                     $providerInfo['display_name'],
-                    $provider->getDefaultBaseUrl ? $provider->getDefaultBaseUrl() : '',
+                    '',  // Base URL will be set by the module
                     $_POST['api_key'],
                     $_POST['secret_key'] ?? null,
                     'api_key',
