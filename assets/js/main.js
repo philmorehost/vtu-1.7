@@ -2055,11 +2055,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateAirtimeRecipientCountAndCost();
     });
 
-    airtimePhoneNumberInput.addEventListener('input', () => {
+    airtimePhoneNumberInput.addEventListener('input', async () => {
         if (!airtimeBulkPurchaseToggle.checked) {
             const phoneNumber = airtimePhoneNumberInput.value;
             if (!airtimeNetworkOverrideToggle.checked) {
-                const detected = detectNetwork(phoneNumber);
+                const detected = await detectNetworkFromPhone(phoneNumber);
                 airtimeDetectedNetworkDisplay.textContent = detected;
             }
         }
