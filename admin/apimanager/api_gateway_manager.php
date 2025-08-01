@@ -4,9 +4,11 @@
  * Central management interface for API providers and service routing
  */
 
-$title = 'API Gateway Manager';
-require_once('../includes/header.php');
-require_once('../../includes/db.php');
+// Note: session_config.php and auth_check.php are typically included in the header.
+// We need them here to handle API requests before any HTML output.
+require_once(__DIR__ . '/../../includes/session_config.php');
+require_once(__DIR__ . '/../auth_check.php');
+require_once(__DIR__ . '/../../includes/db.php');
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -91,6 +93,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
 }
+
+$title = 'API Gateway Manager';
+require_once('../includes/header.php');
 
 // Fetch API providers
 try {
