@@ -1,11 +1,11 @@
 <?php
 /**
- * Airtime API Endpoint - Dynamic routing with API Gateway
+ * Airtime API Endpoint - Enhanced with Modular API System
  */
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
 require_once('../includes/db.php');
-require_once('../includes/ApiGateway.php');
+require_once('../includes/ModularApiGateway.php');
 require_once('../includes/AdminControls.php');
 
 if (!isset($_SESSION['user_id'])) {
@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-$apiGateway = new ApiGateway($pdo);
+$modularGateway = new ModularApiGateway($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phoneNumber = $_POST['phoneNumber'] ?? null;
@@ -57,20 +57,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$network) {
             $response = file_get_contents("http://localhost/api/services.php?action=detect_network&phone=" . urlencode($phoneNumber));
             $detectionResult = json_decode($response, true);
-            $networkId = null;
+            $networkName = null;
             
             if ($detectionResult && $detectionResult['success']) {
-                $networkId = $detectionResult['network']['id'];
+                $networkName = $detectionResult['network']['name'];
+                $network = $networkName;
             }
-        } else {
-            // Get network ID from network code
+        }
+
+        // Get airtime service product for the network (or general airtime)
+        $networkId = null;
+        if ($network) {
             $stmt = $pdo->prepare("SELECT id FROM networks WHERE name = ? OR code = ?");
-            $stmt->execute([$network, $network]);
+            $stmt->execute([strtoupper($network), strtoupper($network)]);
             $networkData = $stmt->fetch();
             $networkId = $networkData ? $networkData['id'] : null;
         }
 
-        // Get airtime service product for the network (or general airtime)
         $stmt = $pdo->prepare("
             SELECT * FROM service_products 
             WHERE service_type = 'airtime' 
@@ -93,24 +96,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cost = $amount * (1 - ($discountPercentage / 100));
 
         // Check user balance
-        $balanceBefore = $apiGateway->getUserBalance($userId);
+        $stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch();
+        $balanceBefore = $user['balance'];
+
         if ($balanceBefore < $cost) {
             echo json_encode(['success' => false, 'message' => 'Insufficient balance.']);
             $pdo->rollBack();
             exit();
         }
 
-        // Get API route for airtime service
-        $route = $apiGateway->getRoute('airtime', $networkId);
-        if (!$route) {
-            echo json_encode(['success' => false, 'message' => 'Airtime service temporarily unavailable. No API provider configured.']);
-            $pdo->rollBack();
-            exit();
-        }
-
         // Deduct amount from wallet
         $balanceAfter = $balanceBefore - $cost;
-        if (!$apiGateway->updateWalletBalance($userId, -$cost)) {
+        $stmt = $pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ?");
+        $success = $stmt->execute([$cost, $userId]);
+
+        if (!$success) {
             echo json_encode(['success' => false, 'message' => 'Failed to update wallet balance.']);
             $pdo->rollBack();
             exit();
@@ -122,51 +124,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'phoneNumber' => $phoneNumber,
             'amount' => $amount,
             'cost' => $cost,
-            'network_id' => $networkId,
+            'network' => $network,
             'discount_percentage' => $discountPercentage
         ];
 
-        $transactionId = $apiGateway->recordTransaction(
-            $userId, 'Airtime', $description, -$cost, 'Pending',
-            $serviceDetails, $source, $balanceBefore, $balanceAfter, $batchId
-        );
+        $stmt = $pdo->prepare("
+            INSERT INTO transactions
+            (user_id, type, description, amount, status, service_details, source, balance_before, balance_after, batch_id, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
 
-        if (!$transactionId) {
+        $success = $stmt->execute([
+            $userId,
+            'Airtime',
+            $description,
+            -$cost,
+            'Pending',
+            json_encode($serviceDetails),
+            $source,
+            $balanceBefore,
+            $balanceAfter,
+            $batchId
+        ]);
+
+        if (!$success) {
             echo json_encode(['success' => false, 'message' => 'Failed to record transaction.']);
             $pdo->rollBack();
             exit();
         }
 
-        // Prepare API request data
-        $requestData = [
-            'phoneNumber' => $phoneNumber,
-            'amount' => $amount,
-            'network' => $network,
-            'transaction_id' => $transactionId
-        ];
+        $transactionId = $pdo->lastInsertId();
 
-        // Make API request
-        $apiResponse = $apiGateway->makeApiRequest($route, $requestData);
+        // Use modular API gateway to process airtime
+        $apiResponse = $modularGateway->purchaseAirtime($phoneNumber, $amount, $network);
 
         // Update transaction based on API response
-        $finalStatus = 'Failed';
-        $responseMessage = 'Transaction failed';
-
-        if ($apiResponse['success']) {
-            $parsedResponse = $apiResponse['parsed_response'];
-            
-            if (isset($parsedResponse['success']) && $parsedResponse['success']) {
-                $finalStatus = 'Completed';
-                $responseMessage = $parsedResponse['message'] ?? "Successfully sent ₦{$amount} airtime to {$phoneNumber}";
-            } elseif (isset($parsedResponse['status']) && strtolower($parsedResponse['status']) === 'success') {
-                $finalStatus = 'Completed';
-                $responseMessage = $parsedResponse['message'] ?? "Successfully sent ₦{$amount} airtime to {$phoneNumber}";
-            } else {
-                $responseMessage = $parsedResponse['message'] ?? 'Transaction failed at provider';
-            }
-        } else {
-            $responseMessage = 'API connection failed: ' . ($apiResponse['message'] ?? 'Unknown error');
-        }
+        $finalStatus = $apiResponse['success'] ? 'Completed' : 'Failed';
+        $responseMessage = $apiResponse['message'];
 
         // Update transaction status
         $stmt = $pdo->prepare("UPDATE transactions SET status = ? WHERE id = ?");
@@ -174,7 +168,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // If transaction failed, refund the amount
         if ($finalStatus === 'Failed') {
-            $apiGateway->updateWalletBalance($userId, $cost);
+            $stmt = $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
+            $stmt->execute([$cost, $userId]);
             
             // Update balance in transaction record
             $stmt = $pdo->prepare("UPDATE transactions SET balance_after = balance_before WHERE id = ?");
@@ -184,61 +179,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->commit();
 
         // Log API response for debugging
-        error_log("Airtime API Response for Transaction $transactionId: " . json_encode($apiResponse));
+        error_log("Modular Airtime API Response for Transaction $transactionId: " . json_encode($apiResponse));
 
         echo json_encode([
             'success' => ($finalStatus === 'Completed'),
             'message' => $responseMessage,
             'transaction_id' => $transactionId,
             'status' => $finalStatus,
+            'provider' => $apiResponse['provider'] ?? 'Unknown',
             'discount_applied' => $discountPercentage > 0 ? "{$discountPercentage}%" : null
         ]);
 
     } catch (Exception $e) {
         $pdo->rollBack();
-        error_log("Airtime API Error: " . $e->getMessage());
+        error_log("Modular Airtime API Error: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'System error: ' . $e->getMessage()]);
-    }
-
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET') {
-    // Handle requery requests
-    if (isset($_GET['requery']) && isset($_GET['transaction_id'])) {
-        $transactionId = (int)$_GET['transaction_id'];
-        $result = $apiGateway->requeryTransaction($transactionId);
-        echo json_encode($result);
-        exit();
-    }
-
-    // Return available networks for airtime
-    try {
-        $stmt = $pdo->query("
-            SELECT sp.*, n.display_name as network_name, n.name as network_code 
-            FROM service_products sp 
-            LEFT JOIN networks n ON sp.network_id = n.id 
-            WHERE sp.service_type = 'airtime' AND sp.status = 'active' 
-            ORDER BY n.name ASC
-        ");
-        $airtimeServices = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Group by network
-        $groupedServices = [];
-        foreach ($airtimeServices as $service) {
-            $networkName = $service['network_name'] ?: 'All Networks';
-            $groupedServices[$networkName][] = [
-                'network_code' => $service['network_code'],
-                'discount_percentage' => $service['discount_percentage'],
-                'min_amount' => 50, // Default minimum
-                'max_amount' => 10000 // Default maximum
-            ];
-        }
-
-        echo json_encode([
-            'success' => true,
-            'data' => $groupedServices
-        ]);
-
-    } catch (Exception $e) {
-        echo json_encode(['success' => false, 'message' => 'Error fetching airtime services.']);
     }
 
 } else {
