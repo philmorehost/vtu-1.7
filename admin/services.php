@@ -1,7 +1,9 @@
 <?php
-$title = 'Manage Services';
-require_once('includes/header.php');
-require_once('../includes/db.php');
+// Note: session_config.php and auth_check.php are typically included in the header.
+// We need them here to handle API requests before any HTML output.
+require_once(__DIR__ . '/../includes/session_config.php');
+require_once(__DIR__ . '/auth_check.php');
+require_once(__DIR__ . '/../includes/db.php');
 
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -65,6 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
 }
+
+$title = 'Manage Services';
+require_once('includes/header.php');
 
 // Get current view mode (grid or list)
 $viewMode = $_SESSION['services_view'] ?? 'list';
@@ -179,15 +184,15 @@ try {
                     ?>
                     <tr class="hover:bg-gray-50">
                         <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($product['name']) ?></div>
-                            <div class="text-sm text-gray-500"><?= htmlspecialchars($product['plan_code']) ?></div>
+                            <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($product['name'] ?? '') ?></div>
+                            <div class="text-sm text-gray-500"><?= htmlspecialchars($product['plan_code'] ?? '') ?></div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            <?= $product['network_name'] ?: 'All Networks' ?>
+                            <?= htmlspecialchars($product['network_name'] ?? 'All Networks') ?>
                         </td>
                         <?php if ($serviceType === 'data'): ?>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['data_size']) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['validity']) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['data_size'] ?? '') ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['validity'] ?? '') ?></td>
                         <?php endif; ?>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['amount'], 2) ?></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['selling_price'], 2) ?></td>
@@ -196,7 +201,7 @@ try {
                         <?php endif; ?>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 py-1 text-xs font-medium rounded-full <?= $product['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                                <?= $product['status'] ?>
+                                <?= htmlspecialchars($product['status'] ?? '') ?>
                             </span>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -231,18 +236,18 @@ try {
             <div class="p-6">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($product['name']) ?></h3>
-                        <p class="text-sm text-gray-500"><?= $product['network_name'] ?: 'All Networks' ?></p>
+                        <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($product['name'] ?? '') ?></h3>
+                        <p class="text-sm text-gray-500"><?= htmlspecialchars($product['network_name'] ?? 'All Networks') ?></p>
                     </div>
                     <span class="px-2 py-1 text-xs font-medium rounded-full <?= $product['status'] === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' ?>">
-                        <?= $product['status'] ?>
+                        <?= htmlspecialchars($product['status'] ?? '') ?>
                     </span>
                 </div>
                 
                 <?php if ($serviceType === 'data'): ?>
                 <div class="mb-4">
-                    <div class="text-sm text-gray-600 mb-1">Data Size: <?= htmlspecialchars($product['data_size']) ?></div>
-                    <div class="text-sm text-gray-600">Validity: <?= htmlspecialchars($product['validity']) ?></div>
+                    <div class="text-sm text-gray-600 mb-1">Data Size: <?= htmlspecialchars($product['data_size'] ?? '') ?></div>
+                    <div class="text-sm text-gray-600">Validity: <?= htmlspecialchars($product['validity'] ?? '') ?></div>
                 </div>
                 <?php endif; ?>
                 
@@ -322,7 +327,7 @@ try {
                             <select id="productNetwork" name="network_id" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                                 <option value="">All Networks</option>
                                 <?php foreach ($networks as $network): ?>
-                                <option value="<?= $network['id'] ?>"><?= htmlspecialchars($network['display_name']) ?></option>
+                                <option value="<?= $network['id'] ?>"><?= htmlspecialchars($network['display_name'] ?? '') ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
