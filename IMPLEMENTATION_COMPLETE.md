@@ -14,7 +14,7 @@ Successfully integrated new supported services and existing services as describe
 ### 2. DataGifting Provider (Bulk SMS)
 - **Services**: Bulk SMS
 - **Authentication**: API Key + User ID
-- **Base URL**: `https://api.datagifting.com/v1/`
+- **Base URL**: `https://v5.datagifting.com.ng/web/`
 - **Features**: Sender ID management, delivery reports
 
 ### 3. KudiSMS Provider (Bulk SMS)

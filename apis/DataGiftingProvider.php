@@ -19,7 +19,7 @@ class DataGiftingProvider extends BaseApiProvider {
     }
     
     protected function getDefaultBaseUrl() {
-        return 'https://api.datagifting.com/v1/';
+        return 'https://v5.datagifting.com.ng/web/';
     }
     
     public function getSupportedServices() {
