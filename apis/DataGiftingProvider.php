@@ -190,12 +190,13 @@ class DataGiftingProvider extends BaseApiProvider {
     public function purchaseData($phoneNumber, $planCode, $network = null) {
         $this->validateConfig();
 
-        // The documentation is ambiguous about planCode vs type/quantity.
-        // Assuming planCode contains the necessary info, e.g., "sme-data/1gb"
-        // This may need refinement based on how products are stored.
+        // The plan_code will be in the format "data-type/data-size", e.g., "sme-data/1gb"
         $parts = explode('/', $planCode);
-        $type = $parts[0] ?? 'sme-data';
-        $quantity = $parts[1] ?? '1gb';
+        if (count($parts) !== 2) {
+            return $this->formatResponse(false, 'Invalid plan_code format. Expected format: type/quantity.');
+        }
+        $type = $parts[0];
+        $quantity = $parts[1];
 
         $data = [
             'api_key' => $this->apiKey,

@@ -502,6 +502,11 @@ function toggleServiceFields(serviceType) {
         if (serviceType === 'data') {
             dataFields.classList.remove('hidden');
         }
+        // Ensure all provider options are visible when not used
+        const options = productProviderSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].style.display = '';
+        }
     } else if (serviceType) {
         providerField.classList.remove('hidden');
         // Filter providers based on the selected service type
@@ -514,6 +519,12 @@ function toggleServiceFields(serviceType) {
             } else {
                 options[i].style.display = 'none';
             }
+        }
+    } else {
+        // If no service type is selected, ensure all provider options are visible
+        const options = productProviderSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].style.display = '';
         }
     }
 }
