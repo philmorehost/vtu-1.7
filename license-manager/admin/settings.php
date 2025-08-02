@@ -18,6 +18,7 @@ if (file_exists($settings_file)) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['site_name'] = $_POST['site_name'] ?? '';
     $settings['paystack_secret_key'] = $_POST['paystack_secret_key'] ?? '';
+    $settings['license_price'] = $_POST['license_price'] ?? '5000.00';
     $settings['smtp_host'] = $_POST['smtp_host'] ?? '';
     $settings['smtp_port'] = $_POST['smtp_port'] ?? '';
     $settings['smtp_user'] = $_POST['smtp_user'] ?? '';
@@ -116,6 +117,10 @@ $webhook_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https"
                     <div class="input-group">
                         <label>Paystack Secret Key</label>
                         <input type="text" name="paystack_secret_key" value="<?= htmlspecialchars($settings['paystack_secret_key'] ?? '') ?>">
+                    </div>
+                    <div class="input-group">
+                        <label>License Price (in NGN)</label>
+                        <input type="number" step="0.01" name="license_price" value="<?= htmlspecialchars($settings['license_price'] ?? '5000.00') ?>">
                     </div>
                 </div>
             </div>

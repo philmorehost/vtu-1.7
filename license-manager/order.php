@@ -14,6 +14,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Purchase License - <?= htmlspecialchars($settings['site_name'] ?? 'License Manager') ?></title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root {
@@ -96,17 +97,41 @@ if (json_last_error() !== JSON_ERROR_NONE) {
             <h1>Purchase Your License</h1>
             <p>Get your lifetime license key and unlock all features.</p>
         </div>
-        <form action="https://paystack.com/pay/your_payment_link" method="POST">
+        <form id="paymentForm">
             <div class="input-group">
                 <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" required>
             </div>
             <div class="input-group">
                 <label for="domain">Domain Name</label>
-                <input type="text" id="domain" name="domain" value="<?= htmlspecialchars($_GET['domain'] ?? '') ?>" required>
+                <input type="text" id="domain" value="<?= htmlspecialchars($_GET['domain'] ?? '') ?>" required>
             </div>
-            <button type="submit" class="submit-btn">Proceed to Payment</button>
+            <button type="button" onclick="payWithPaystack()" class="submit-btn">Pay Now (NGN <?= htmlspecialchars($settings['license_price'] ?? '5000.00') ?>)</button>
         </form>
     </div>
+
+    <script>
+        function payWithPaystack() {
+            const handler = PaystackPop.setup({
+                key: '<?= htmlspecialchars($settings['paystack_public_key'] ?? 'YOUR_PAYSTACK_PUBLIC_KEY') ?>',
+                email: document.getElementById('email').value,
+                amount: <?= (float)($settings['license_price'] ?? 5000) * 100 ?>,
+                currency: 'NGN',
+                ref: 'lic-' + Math.floor((Math.random() * 1000000000) + 1),
+                metadata: {
+                    domain: document.getElementById('domain').value,
+                },
+                callback: function(response) {
+                    // This is called after a successful transaction.
+                    // You can redirect to a success page here.
+                    window.location.href = 'https://your-success-page.com?ref=' + response.reference;
+                },
+                onClose: function() {
+                    // This is called when the user closes the popup.
+                }
+            });
+            handler.openIframe();
+        }
+    </script>
 </body>
 </html>
