@@ -35,9 +35,20 @@ if ($event_data['event'] === 'charge.success') {
     // --- Database interaction ---
     require_once('db.php');
     try {
+        $pdo->beginTransaction();
+
+        // Insert license
         $stmt = $pdo->prepare("INSERT INTO licenses (license_key, domain, customer_email, status) VALUES (?, ?, ?, ?)");
         $stmt->execute([$new_license_key, $domain, $customer_email, 'active']);
+        $license_id = $pdo->lastInsertId();
+
+        // Insert transaction
+        $stmt = $pdo->prepare("INSERT INTO transactions (license_id, transaction_ref, amount, currency, status) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$license_id, $event_data['data']['reference'], $event_data['data']['amount'] / 100, $event_data['data']['currency'], 'success']);
+
+        $pdo->commit();
     } catch (PDOException $e) {
+        $pdo->rollBack();
         file_put_contents('error.log', "Database error: " . $e->getMessage() . "\n", FILE_APPEND);
         http_response_code(500);
         exit();
