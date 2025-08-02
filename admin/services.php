@@ -19,8 +19,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_POST['service_provider_id'] ?: null,
                     $_POST['name'],
                     $_POST['plan_code'],
-                    (float)$_POST['amount'],
-                    (float)$_POST['selling_price'],
+                    !empty($_POST['amount']) ? (float)$_POST['amount'] : null,
+                    !empty($_POST['selling_price']) ? (float)$_POST['selling_price'] : null,
                     (float)$_POST['discount_percentage'],
                     $_POST['validity'],
                     $_POST['data_size'],
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_POST['service_provider_id'] ?: null,
                     $_POST['name'],
                     $_POST['plan_code'],
-                    (float)$_POST['amount'],
-                    (float)$_POST['selling_price'],
+                    !empty($_POST['amount']) ? (float)$_POST['amount'] : null,
+                    !empty($_POST['selling_price']) ? (float)$_POST['selling_price'] : null,
                     (float)$_POST['discount_percentage'],
                     $_POST['validity'],
                     $_POST['data_size'],
@@ -206,8 +206,8 @@ try {
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['data_size'] ?? '') ?></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['validity'] ?? '') ?></td>
                         <?php endif; ?>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['amount'], 2) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['selling_price'], 2) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= isset($product['amount']) ? '₦' . number_format($product['amount'], 2) : 'N/A' ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= isset($product['selling_price']) ? '₦' . number_format($product['selling_price'], 2) : 'N/A' ?></td>
                         <?php if ($serviceType === 'airtime'): ?>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= $product['discount_percentage'] ?>%</td>
                         <?php endif; ?>
@@ -264,14 +264,18 @@ try {
                 <?php endif; ?>
                 
                 <div class="mb-4">
+                    <?php if (isset($product['amount'])): ?>
                     <div class="flex justify-between text-sm text-gray-600 mb-1">
                         <span>Cost Price:</span>
                         <span>₦<?= number_format($product['amount'], 2) ?></span>
                     </div>
+                    <?php endif; ?>
+                    <?php if (isset($product['selling_price'])): ?>
                     <div class="flex justify-between text-lg font-semibold text-gray-900">
                         <span>Selling Price:</span>
                         <span>₦<?= number_format($product['selling_price'], 2) ?></span>
                     </div>
+                    <?php endif; ?>
                     <?php if ($serviceType === 'airtime' && $product['discount_percentage'] > 0): ?>
                     <div class="text-sm text-green-600 mt-1">
                         <?= $product['discount_percentage'] ?>% Discount
@@ -364,11 +368,11 @@ try {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Cost Price (₦)</label>
-                            <input type="number" id="productAmount" name="amount" step="0.01" min="0" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <input type="number" id="productAmount" name="amount" step="0.01" min="0" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Selling Price (₦)</label>
-                            <input type="number" id="productSellingPrice" name="selling_price" step="0.01" min="0" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <input type="number" id="productSellingPrice" name="selling_price" step="0.01" min="0" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
