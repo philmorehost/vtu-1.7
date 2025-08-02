@@ -34,11 +34,44 @@ if ($event_data['event'] === 'charge.success') {
     file_put_contents($license_db_file, $db_entry, FILE_APPEND);
     // -----------------------------------------
 
-    // --- Placeholder for sending email ---
-    // In a real application, you would use a proper email library to send the license key to the customer.
-    $email_subject = 'Your New License Key';
-    $email_body = "Thank you for your purchase. Your new license key is: {$new_license_key}";
-    // mail($customer_email, $email_subject, $email_body);
+    // --- Send email notification ---
+    require 'includes/PHPMailer/src/Exception.php';
+    require 'includes/PHPMailer/src/PHPMailer.php';
+    require 'includes/PHPMailer/src/SMTP.php';
+
+    $settings_file = 'settings.json';
+    $settings = [];
+    if (file_exists($settings_file)) {
+        $settings = json_decode(file_get_contents($settings_file), true);
+    }
+
+    $mail = new PHPMailer\PHPMailer\PHPMailer(true);
+    try {
+        //Server settings
+        $mail->isSMTP();
+        $mail->Host       = $settings['smtp_host'] ?? 'smtp.example.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = $settings['smtp_user'] ?? 'user@example.com';
+        $mail->Password   = $settings['smtp_pass'] ?? 'password';
+        $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = $settings['smtp_port'] ?? 587;
+
+        //Recipients
+        $mail->setFrom($settings['admin_email'] ?? 'from@example.com', $settings['site_name'] ?? 'License Manager');
+        $mail->addAddress($customer_email);
+        $mail->addBCC($settings['admin_email'] ?? 'admin@example.com');
+
+        //Content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your New License Key';
+        $mail->Body    = "Thank you for your purchase. Your new license key is: <b>{$new_license_key}</b>";
+        $mail->AltBody = "Thank you for your purchase. Your new license key is: {$new_license_key}";
+
+        $mail->send();
+    } catch (Exception $e) {
+        // Log email error
+        file_put_contents('email.log', "Message could not be sent. Mailer Error: {$mail->ErrorInfo}\n", FILE_APPEND);
+    }
     // ------------------------------------
 }
 
