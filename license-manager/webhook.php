@@ -74,7 +74,14 @@ if ($event_data['event'] === 'charge.success') {
         //Content
         $mail->isHTML(true);
         $mail->Subject = 'Your New License Key';
-        $mail->Body    = "Thank you for your purchase. Your new license key is: <b>{$new_license_key}</b>";
+
+        $template = file_get_contents('email_template.html');
+        $body = str_replace(
+            ['{license_key}', '{domain}', '{site_name}'],
+            [$new_license_key, $domain, $settings['site_name'] ?? 'License Manager'],
+            $template
+        );
+        $mail->Body = $body;
         $mail->AltBody = "Thank you for your purchase. Your new license key is: {$new_license_key}";
 
         $mail->send();

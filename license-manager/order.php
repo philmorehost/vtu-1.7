@@ -122,9 +122,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
                     domain: document.getElementById('domain').value,
                 },
                 callback: function(response) {
-                    // This is called after a successful transaction.
-                    // You can redirect to a success page here.
-                    window.location.href = 'https://your-success-page.com?ref=' + response.reference;
+                    window.location.href = 'success.php?ref=' + response.reference;
                 },
                 onClose: function() {
                     // This is called when the user closes the popup.
