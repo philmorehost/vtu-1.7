@@ -17,6 +17,7 @@ if (file_exists($settings_file)) {
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $settings['site_name'] = $_POST['site_name'] ?? '';
+    $settings['paystack_public_key'] = $_POST['paystack_public_key'] ?? '';
     $settings['paystack_secret_key'] = $_POST['paystack_secret_key'] ?? '';
     $settings['license_price'] = $_POST['license_price'] ?? '5000.00';
     $settings['smtp_host'] = $_POST['smtp_host'] ?? '';
@@ -114,6 +115,10 @@ $webhook_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https"
             <div class="card">
                 <div class="card-header"><h3>Payment Gateway (Paystack)</h3></div>
                 <div class="card-body">
+                    <div class="input-group">
+                        <label>Paystack Public Key</label>
+                        <input type="text" name="paystack_public_key" value="<?= htmlspecialchars($settings['paystack_public_key'] ?? '') ?>">
+                    </div>
                     <div class="input-group">
                         <label>Paystack Secret Key</label>
                         <input type="text" name="paystack_secret_key" value="<?= htmlspecialchars($settings['paystack_secret_key'] ?? '') ?>">

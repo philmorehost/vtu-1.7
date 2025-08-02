@@ -113,7 +113,7 @@ if (json_last_error() !== JSON_ERROR_NONE) {
     <script>
         function payWithPaystack() {
             const handler = PaystackPop.setup({
-                key: '<?= htmlspecialchars($settings['paystack_public_key'] ?? 'YOUR_PAYSTACK_PUBLIC_KEY') ?>',
+                key: '<?= htmlspecialchars($settings['paystack_public_key'] ?? '') ?>',
                 email: document.getElementById('email').value,
                 amount: <?= (float)($settings['license_price'] ?? 5000) * 100 ?>,
                 currency: 'NGN',
