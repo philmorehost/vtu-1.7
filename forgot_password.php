@@ -1,4 +1,7 @@
 <?php
+require_once('core_integrity.php');
+_0x2a1b_c4d3e5();
+
 require_once('includes/session_config.php');
 require_once('includes/db.php');
 
@@ -17,56 +20,57 @@ unset($_SESSION['reset_success']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Forgot Password - <?= htmlspecialchars($settings['site_name'] ?? 'Your Platform') ?></title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root {
-            --primary-color: #4F46E5;
-            --secondary-color: #6366F1;
-            --background-color: #F3F4F6;
-            --card-background: #FFFFFF;
-            --text-color: #374151;
-            --input-border: #D1D5DB;
-            --input-focus-border: #4F46E5;
+            --primary-color: #3b82f6;
+            --primary-hover-color: #2563eb;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --input-border: #d1d5db;
+            --input-focus-border: #3b82f6;
         }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--background-color);
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            color: var(--text-color);
         }
-        .login-container {
+        .auth-container {
             display: grid;
             grid-template-columns: 1fr;
-            max-width: 900px;
-            width: 100%;
+            max-width: 56rem; /* 896px */
+            width: 90%;
             background-color: var(--card-background);
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 1rem; /* 16px */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
         }
         @media (min-width: 768px) {
-            .login-container {
+            .auth-container {
                 grid-template-columns: 1fr 1fr;
             }
         }
-        .login-form-container {
-            padding: 2.5rem;
+        .auth-form-section {
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-        .login-image-container {
+        .auth-image-section {
             background-image: url('<?= htmlspecialchars($settings['auth_image'] ?? 'assets/images/auth-bg.jpg') ?>');
             background-size: cover;
             background-position: center;
             display: none;
         }
         @media (min-width: 768px) {
-            .login-image-container {
+            .auth-image-section {
                 display: block;
             }
         }
@@ -75,55 +79,55 @@ unset($_SESSION['reset_success']);
             margin-bottom: 2rem;
         }
         .form-header img {
-            height: 4rem;
+            height: 3.5rem; /* 56px */
             margin: 0 auto 1rem;
         }
         .form-header h1 {
-            font-size: 1.875rem;
+            font-size: 1.5rem; /* 24px */
             font-weight: 700;
-            color: var(--text-color);
+            color: var(--text-primary);
         }
         .form-header p {
-            color: #6B7280;
+            color: var(--text-secondary);
             margin-top: 0.5rem;
         }
         .input-group {
-            margin-bottom: 1.5rem;
-            position: relative;
+            margin-bottom: 1.25rem; /* 20px */
         }
         .input-group label {
             display: block;
             font-weight: 500;
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 0.875rem; /* 14px */
+            color: var(--text-primary);
         }
         .input-group input {
             width: 100%;
             padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            border-radius: 0.5rem; /* 8px */
             border: 1px solid var(--input-border);
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
         }
         .input-group input:focus {
             outline: none;
             border-color: var(--input-focus-border);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
         }
         .submit-btn {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background-color: var(--primary-color);
             color: white;
             font-weight: 600;
-            padding: 0.75rem 2rem;
+            padding: 0.75rem;
             border: none;
             border-radius: 0.5rem;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
             width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
         }
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+            background-color: var(--primary-hover-color);
         }
         .form-footer {
             text-align: center;
@@ -144,37 +148,42 @@ unset($_SESSION['reset_success']);
             border-radius: 0.5rem;
             border-width: 1px;
             font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        .alert i {
+            margin-right: 0.75rem;
         }
         .alert-error {
-            background-color: #FEF2F2;
-            border-color: #F87171;
-            color: #B91C1C;
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+            color: #b91c1c;
         }
         .alert-success {
-            background-color: #F0FDF4;
-            border-color: #4ADE80;
+            background-color: #f0fdf4;
+            border-color: #86efac;
             color: #166534;
         }
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-form-container">
+    <div class="auth-container">
+        <div class="auth-form-section">
             <div class="form-header">
                 <?php if (!empty($settings['site_logo'])): ?>
                     <img src="<?= htmlspecialchars($settings['site_logo']) ?>" alt="Site Logo">
                 <?php else: ?>
-                    <h1><?= htmlspecialchars($settings['site_name'] ?? 'Welcome') ?></h1>
+                    <h1><?= htmlspecialchars($settings['site_name'] ?? 'Forgot Password') ?></h1>
                 <?php endif; ?>
                 <p>Enter your email to receive a password reset link.</p>
             </div>
 
             <?php
             if ($reset_error) {
-                echo '<div class="alert alert-error">' . htmlspecialchars($reset_error) . '</div>';
+                echo '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i>' . htmlspecialchars($reset_error) . '</div>';
             }
             if ($reset_success) {
-                echo '<div class="alert alert-success">' . htmlspecialchars($reset_success) . '</div>';
+                echo '<div class="alert alert-success"><i class="fas fa-check-circle"></i>' . htmlspecialchars($reset_success) . '</div>';
             }
             ?>
 
@@ -189,7 +198,7 @@ unset($_SESSION['reset_success']);
                 <p>Remember your password? <a href="login.php">Sign In</a></p>
             </div>
         </div>
-        <div class="login-image-container"></div>
+        <div class="auth-image-section"></div>
     </div>
 </body>
 </html>

@@ -16,55 +16,55 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     <title>Register - <?= htmlspecialchars($settings['site_name'] ?? 'Your Platform') ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         :root {
-            --primary-color: #4F46E5;
-            --secondary-color: #6366F1;
-            --background-color: #F3F4F6;
-            --card-background: #FFFFFF;
-            --text-color: #374151;
-            --input-border: #D1D5DB;
-            --input-focus-border: #4F46E5;
+            --primary-color: #3b82f6;
+            --primary-hover-color: #2563eb;
+            --background-color: #f9fafb;
+            --card-background: #ffffff;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --input-border: #d1d5db;
+            --input-focus-border: #3b82f6;
         }
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--background-color);
             margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            color: var(--text-color);
         }
-        .login-container {
+        .auth-container {
             display: grid;
             grid-template-columns: 1fr;
-            max-width: 900px;
-            width: 100%;
+            max-width: 56rem; /* 896px */
+            width: 90%;
             background-color: var(--card-background);
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border-radius: 1rem; /* 16px */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             overflow: hidden;
         }
         @media (min-width: 768px) {
-            .login-container {
+            .auth-container {
                 grid-template-columns: 1fr 1fr;
             }
         }
-        .login-form-container {
-            padding: 2.5rem;
+        .auth-form-section {
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-        .login-image-container {
+        .auth-image-section {
             background-image: url('<?= htmlspecialchars($settings['auth_image'] ?? 'assets/images/auth-bg.jpg') ?>');
             background-size: cover;
             background-position: center;
             display: none;
         }
         @media (min-width: 768px) {
-            .login-image-container {
+            .auth-image-section {
                 display: block;
             }
         }
@@ -73,70 +73,67 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
             margin-bottom: 2rem;
         }
         .form-header img {
-            height: 4rem;
+            height: 3.5rem; /* 56px */
             margin: 0 auto 1rem;
         }
         .form-header h1 {
-            font-size: 1.875rem;
+            font-size: 1.5rem; /* 24px */
             font-weight: 700;
-            color: var(--text-color);
+            color: var(--text-primary);
         }
         .form-header p {
-            color: #6B7280;
+            color: var(--text-secondary);
             margin-top: 0.5rem;
         }
         .input-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.25rem; /* 20px */
             position: relative;
         }
         .input-group label {
             display: block;
             font-weight: 500;
             margin-bottom: 0.5rem;
-            font-size: 0.875rem;
+            font-size: 0.875rem; /* 14px */
+            color: var(--text-primary);
         }
         .input-group input {
             width: 100%;
             padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
+            border-radius: 0.5rem; /* 8px */
             border: 1px solid var(--input-border);
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
             box-sizing: border-box;
         }
         .input-group input:focus {
             outline: none;
             border-color: var(--input-focus-border);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
         }
         .password-toggle {
             position: absolute;
-            top: 70%;
+            top: 2.4rem; /* 38.4px */
             right: 1rem;
-            transform: translateY(-50%);
             cursor: pointer;
-            color: #9CA3AF;
+            color: #9ca3af;
         }
         .submit-btn {
-            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            background-color: var(--primary-color);
             color: white;
             font-weight: 600;
-            padding: 0.75rem 2rem;
+            padding: 0.75rem;
             border: none;
             border-radius: 0.5rem;
             cursor: pointer;
-            transition: all 0.2s;
             width: 100%;
+            transition: background-color 0.2s;
             margin-top: 1rem;
         }
         .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+            background-color: var(--primary-hover-color);
         }
         .submit-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         .form-footer {
             text-align: center;
@@ -157,17 +154,23 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
             border-radius: 0.5rem;
             border-width: 1px;
             font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+        }
+        .alert i {
+            margin-right: 0.75rem;
         }
         .alert-error {
-            background-color: #FEF2F2;
-            border-color: #F87171;
-            color: #B91C1C;
+            background-color: #fef2f2;
+            border-color: #fca5a5;
+            color: #b91c1c;
         }
         #password-strength-meter {
             width: 100%;
-            background-color: #E5E7EB;
+            background-color: #e5e7eb;
             border-radius: 9999px;
             height: 0.5rem;
+            margin-top: 0.5rem;
         }
         #password-strength-bar {
             height: 0.5rem;
@@ -177,20 +180,20 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-form-container">
+    <div class="auth-container">
+        <div class="auth-form-section">
             <div class="form-header">
                 <?php if (!empty($settings['site_logo'])): ?>
                     <img src="<?= htmlspecialchars($settings['site_logo']) ?>" alt="Site Logo">
                 <?php else: ?>
-                    <h1><?= htmlspecialchars($settings['site_name'] ?? 'Welcome') ?></h1>
+                    <h1><?= htmlspecialchars($settings['site_name'] ?? 'Create an Account') ?></h1>
                 <?php endif; ?>
-                <p>Create your account to get started</p>
+                <p>Join us today to get started</p>
             </div>
 
             <?php
             if (isset($_SESSION['register_error'])) {
-                echo '<div class="alert alert-error">' . htmlspecialchars($_SESSION['register_error']) . '</div>';
+                echo '<div class="alert alert-error"><i class="fas fa-exclamation-circle"></i>' . htmlspecialchars($_SESSION['register_error']) . '</div>';
                 unset($_SESSION['register_error']);
             }
             ?>
@@ -213,18 +216,17 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                     <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="new-password">
                     <i class="fas fa-eye password-toggle" id="togglePassword"></i>
                 </div>
-                <div class="flex items-center space-x-2 mb-4">
-                    <div id="password-strength-meter"><div id="password-strength-bar" style="width: 0%"></div></div>
-                    <p id="password-strength-text" class="text-xs italic whitespace-nowrap"></p>
-                </div>
+                <div id="password-strength-meter"><div id="password-strength-bar" style="width: 0%"></div></div>
+                <p id="password-strength-text" class="text-xs italic text-right h-4 mt-1"></p>
+
                 <input type="hidden" name="ref" value="<?= htmlspecialchars($_GET['ref'] ?? ''); ?>">
-                <button type="submit" id="register-button" class="submit-btn">Create Account</button>
+                <button type="submit" id="register-button" class="submit-btn" disabled>Create Account</button>
             </form>
             <div class="form-footer">
                 <p>Already have an account? <a href="login.php">Sign In</a></p>
             </div>
         </div>
-        <div class="login-image-container"></div>
+        <div class="auth-image-section"></div>
     </div>
 
     <script>
@@ -243,43 +245,35 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
         passwordInput.addEventListener('input', () => {
             const password = passwordInput.value;
             let strength = 0;
-            let text = 'Weak';
-            let color = '#EF4444'; // bg-red-500
+            let text = '';
+            let color = '#e5e7eb'; // bg-gray-200
 
             if (password.length > 0) {
-                strength += 10;
-                if (password.length >= 8) strength += 15;
-                if (password.match(/[a-z]/)) strength += 15;
-                if (password.match(/[A-Z]/)) strength += 20;
-                if (password.match(/[0-9]/)) strength += 20;
-                if (password.match(/[^a-zA-Z0-9]/)) strength += 20;
+                if (password.length >= 8) strength += 25;
+                if (password.match(/[a-z]/)) strength += 25;
+                if (password.match(/[A-Z]/)) strength += 25;
+                if (password.match(/[0-9]/)) strength += 25;
             }
 
-            if (strength > 80) {
+            if (strength == 100) {
                 text = 'Very Strong';
-                color = '#22C55E'; // bg-green-500
-            } else if (strength > 60) {
+                color = '#22c55e'; // green-500
+            } else if (strength == 75) {
                 text = 'Strong';
-                color = '#84CC16'; // bg-lime-500
-            } else if (strength > 40) {
+                color = '#84cc16'; // lime-500
+            } else if (strength == 50) {
                 text = 'Medium';
-                color = '#F59E0B'; // bg-amber-500
-            } else if (strength > 0) {
+                color = '#f59e0b'; // amber-500
+            } else if (strength == 25) {
                 text = 'Weak';
-                color = '#F87171'; // bg-red-400
-            } else {
-                text = '';
+                color = '#ef4444'; // red-500
             }
 
             passwordStrengthBar.style.width = strength + '%';
             passwordStrengthBar.style.backgroundColor = color;
             passwordStrengthText.innerText = text;
 
-            if (strength >= 50) {
-                registerButton.disabled = false;
-            } else {
-                registerButton.disabled = true;
-            }
+            registerButton.disabled = strength < 50;
         });
     </script>
 </body>
