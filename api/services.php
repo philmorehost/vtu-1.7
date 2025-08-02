@@ -3,6 +3,30 @@
  * Services API Endpoint
  * Provides dynamic service data for frontend AJAX calls
  */
+
+// --- Global Error Catcher for Debugging ---
+set_error_handler(function($severity, $message, $file, $line) {
+    // We will only handle warnings and notices, as other errors should be caught by the try/catch block.
+    if (!(error_reporting() & $severity)) {
+        // This error code is not included in error_reporting
+        return;
+    }
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'message' => 'A server error occurred. Please check the logs.',
+        'debug_error' => [
+            'type' => 'Caught Error',
+            'severity' => $severity,
+            'message' => $message,
+            'file' => $file,
+            'line' => $line
+        ]
+    ]);
+    exit();
+});
+// --- End Global Error Catcher ---
+
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
 require_once('../includes/db.php');
