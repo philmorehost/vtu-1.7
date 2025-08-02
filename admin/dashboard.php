@@ -1,4 +1,7 @@
 <?php
+require_once('../core_integrity.php');
+_0x2a1b_c4d3e5();
+
 $title = 'Dashboard';
 require_once('includes/header.php');
 

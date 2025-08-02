@@ -1,4 +1,7 @@
 <?php
+require_once('core_integrity.php');
+_0x2a1b_c4d3e5();
+
 require_once('includes/session_config.php');
 require_once('includes/db.php');
 $stmt = $pdo->prepare("SELECT * FROM site_settings WHERE id = ?");

@@ -1,4 +1,7 @@
 <?php
+require_once('../core_integrity.php');
+_0x2a1b_c4d3e5();
+
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
 
