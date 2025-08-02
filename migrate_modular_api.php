@@ -13,11 +13,28 @@ try {
     echo "Starting modular API provider system migration...\n";
 
     // Update api_providers table to include provider_module field
-    $sql = "ALTER TABLE api_providers 
-            ADD COLUMN IF NOT EXISTS provider_module VARCHAR(100) DEFAULT NULL AFTER name,
-            ADD COLUMN IF NOT EXISTS config_fields TEXT DEFAULT NULL AFTER headers";
-    $pdo->exec($sql);
-    echo "✓ Updated api_providers table with module support\n";
+    $columns = [
+        'provider_module' => 'VARCHAR(100) DEFAULT NULL AFTER name',
+        'config_fields' => 'TEXT DEFAULT NULL AFTER headers'
+    ];
+
+    foreach ($columns as $columnName => $columnDefinition) {
+        $stmt = $pdo->prepare("
+            SELECT COUNT(*)
+            FROM information_schema.columns
+            WHERE table_schema = :db_name AND table_name = 'api_providers' AND column_name = :column_name
+        ");
+        $stmt->execute(['db_name' => DB_NAME, 'column_name' => $columnName]);
+        $columnExists = $stmt->fetchColumn();
+
+        if (!$columnExists) {
+            $pdo->exec("ALTER TABLE api_providers ADD COLUMN $columnName $columnDefinition");
+            echo "✓ Added $columnName column to api_providers table\n";
+        } else {
+            echo "- Column $columnName already exists in api_providers table\n";
+        }
+    }
+    echo "✓ Verified api_providers table for module support\n";
 
     // Create new api_provider_routes table (simplified routing)
     $sql = "CREATE TABLE IF NOT EXISTS `api_provider_routes` (
