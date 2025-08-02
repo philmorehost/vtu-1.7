@@ -4,8 +4,6 @@
  * Simplified admin interface for managing API providers using modules
  */
 
-$title = 'Modular API Manager';
-require_once('../includes/header.php');
 require_once('../../includes/db.php');
 require_once('../../apis/ApiProviderRegistry.php');
 
@@ -119,6 +117,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
 }
+
+$title = 'Modular API Manager';
+require_once('../includes/header.php');
 
 // Fetch configured API providers
 try {
