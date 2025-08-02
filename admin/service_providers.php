@@ -143,11 +143,15 @@ try {
                         <label class="block text-sm font-medium text-gray-700">Service Type</label>
                         <select id="providerServiceType" name="service_type" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                             <option value="">Select Service</option>
+                            <option value="airtime">Airtime</option>
+                            <option value="data">Data</option>
                             <option value="cabletv">Cable TV</option>
                             <option value="electricity">Electricity</option>
                             <option value="exam">Exam Pin</option>
                             <option value="betting">Betting</option>
+                            <option value="bulksms">Bulk SMS</option>
                             <option value="giftcard">Gift Card</option>
+                            <option value="recharge">Recharge Card</option>
                         </select>
                     </div>
                     <div>

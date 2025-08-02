@@ -94,7 +94,9 @@ try {
     echo "You can now delete this file.";
 
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     die("An error occurred: " . $e->getMessage());
 }
 
