@@ -29,6 +29,11 @@ class DataGiftingProvider extends BaseApiProvider {
     public function getRequiredConfig() {
         return ['api_key', 'user_id'];
     }
+
+    public function setConfig(array $config) {
+        $this->config = $config;
+        $this->apiKey = $config['api_key'] ?? null;
+    }
     
     protected function getAuthHeaders() {
         return [
@@ -373,7 +378,7 @@ class DataGiftingProvider extends BaseApiProvider {
         }
     }
 
-    public function purchaseRechargeCard($network, $amount, $quantity) {
+    public function purchaseRechargeCard($network, $amount, $quantity = 1) {
         $this->validateConfig();
 
         $data = [
@@ -406,7 +411,7 @@ class DataGiftingProvider extends BaseApiProvider {
         return $this->formatResponse(false, 'Betting account funding is not yet implemented for this provider.');
     }
 
-    public function purchaseGiftCard($cardType, $amount, $quantity) {
+    public function purchaseGiftCard($cardType, $amount, $quantity = 1) {
         return $this->formatResponse(false, 'Gift Card purchase is not yet implemented for this provider.');
     }
 }
