@@ -60,9 +60,9 @@ $licenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <nav>
             <a href="dashboard.php">Dashboard</a>
             <a href="licenses.php" class="active">Licenses</a>
-            <a href="#">Transactions</a>
-            <a href="#">Settings</a>
-            <a href="#">Profile</a>
+            <a href="transactions.php">Transactions</a>
+            <a href="settings.php">Settings</a>
+            <a href="profile.php">Profile</a>
             <a href="logout.php">Logout</a>
         </nav>
     </div>

@@ -51,7 +51,7 @@ if (file_exists($log_file)) {
             <a href="licenses.php">Licenses</a>
             <a href="transactions.php" class="active">Transactions</a>
             <a href="settings.php">Settings</a>
-            <a href="#">Profile</a>
+            <a href="profile.php">Profile</a>
             <a href="logout.php">Logout</a>
         </nav>
     </div>

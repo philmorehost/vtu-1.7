@@ -73,9 +73,9 @@ $webhook_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https"
         <nav>
             <a href="dashboard.php">Dashboard</a>
             <a href="licenses.php">Licenses</a>
-            <a href="#">Transactions</a>
+            <a href="transactions.php">Transactions</a>
             <a href="settings.php" class="active">Settings</a>
-            <a href="#">Profile</a>
+            <a href="profile.php">Profile</a>
             <a href="logout.php">Logout</a>
         </nav>
     </div>

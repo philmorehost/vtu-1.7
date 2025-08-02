@@ -41,10 +41,10 @@ $licenses = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <h1>License Manager</h1>
         <nav>
             <a href="dashboard.php" class="active">Dashboard</a>
-            <a href="#">Licenses</a>
-            <a href="#">Transactions</a>
-            <a href="#">Settings</a>
-            <a href="#">Profile</a>
+            <a href="licenses.php">Licenses</a>
+            <a href="transactions.php">Transactions</a>
+            <a href="settings.php">Settings</a>
+            <a href="profile.php">Profile</a>
             <a href="logout.php">Logout</a>
         </nav>
     </div>
