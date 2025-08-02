@@ -10,229 +10,272 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - <?= htmlspecialchars($settings['site_name'] ?? '') ?></title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Register - <?= htmlspecialchars($settings['site_name'] ?? 'Your Platform') ?></title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #6366F1;
+            --background-color: #F3F4F6;
+            --card-background: #FFFFFF;
+            --text-color: #374151;
+            --input-border: #D1D5DB;
+            --input-focus-border: #4F46E5;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+        .login-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            max-width: 900px;
+            width: 100%;
+            background-color: var(--card-background);
+            border-radius: 1rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+        @media (min-width: 768px) {
+            .login-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .login-form-container {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .login-image-container {
+            background-image: url('<?= htmlspecialchars($settings['auth_image'] ?? 'assets/images/auth-bg.jpg') ?>');
+            background-size: cover;
+            background-position: center;
+            display: none;
+        }
+        @media (min-width: 768px) {
+            .login-image-container {
+                display: block;
+            }
+        }
+        .form-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .form-header img {
+            height: 4rem;
+            margin: 0 auto 1rem;
+        }
+        .form-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+        .form-header p {
+            color: #6B7280;
+            margin-top: 0.5rem;
+        }
+        .input-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+        .input-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--input-border);
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--input-focus-border);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+        .password-toggle {
+            position: absolute;
+            top: 70%;
+            right: 1rem;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #9CA3AF;
+        }
+        .submit-btn {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .form-footer {
+            text-align: center;
+            font-size: 0.875rem;
+            margin-top: 1.5rem;
+        }
+        .form-footer a {
+            color: var(--primary-color);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0.5rem;
+            border-width: 1px;
+            font-size: 0.875rem;
+        }
+        .alert-error {
+            background-color: #FEF2F2;
+            border-color: #F87171;
+            color: #B91C1C;
+        }
+        #password-strength-meter {
+            width: 100%;
+            background-color: #E5E7EB;
+            border-radius: 9999px;
+            height: 0.5rem;
+        }
+        #password-strength-bar {
+            height: 0.5rem;
+            border-radius: 9999px;
+            transition: width 0.3s, background-color 0.3s;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <div class="hidden md:block w-1/2 bg-cover bg-center" style="background-image: url('<?= htmlspecialchars($settings['auth_image'] ?? 'assets/images/auth-bg.jpg') ?>');"></div>
-        <div class="w-full md:w-1/2 flex items-center justify-center p-4 sm:p-6 md:p-8">
-            <div class="w-full max-w-md">
-                <form action="auth_user.php?action=register" method="POST" class="bg-white shadow-lg rounded-lg px-6 sm:px-8 pt-6 pb-8 mb-4" style="box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
-                    <div class="flex justify-center mb-6">
-                        <?php if (!empty($settings['site_logo'])): ?>
-                            <img src="<?= htmlspecialchars($settings['site_logo']) ?>" alt="Site Logo" class="h-16">
-                        <?php else: ?>
-                            <h2 class="text-2xl font-bold text-center"><?= htmlspecialchars($settings['site_name'] ?? 'VTU Platform') ?></h2>
-                        <?php endif; ?>
-                    </div>
-                    <h2 class="text-2xl font-bold text-center mb-6">Create Account</h2>
-                    <?php
-                    if (isset($_SESSION['register_error'])) {
-                        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">';
-                        echo '<strong class="font-bold">Error!</strong>';
-                        echo '<span class="block sm:inline"> ' . htmlspecialchars($_SESSION['register_error']) . '</span>';
-                        echo '</div>';
-                        unset($_SESSION['register_error']);
-                    }
-                    ?>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-                            Full Name
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" type="text" placeholder="Full Name" required autocomplete="name">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                            Email
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" name="email" type="email" placeholder="Email" required autocomplete="email">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
-                            Phone Number
-                        </label>
-                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="phone" name="phone" type="tel" placeholder="Phone Number" required autocomplete="tel">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                            Password
-                        </label>
-                        <div class="relative">
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" name="password" type="password" placeholder="******************" required autocomplete="new-password">
-                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center text-sm leading-5">
-                                <svg class="h-6 w-6 text-gray-700 cursor-pointer" id="toggle-password" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <div id="password-strength-meter" class="w-full bg-gray-200 rounded-full h-2.5">
-                                <div id="password-strength-bar" class="bg-red-500 h-2.5 rounded-full" style="width: 0%"></div>
-                            </div>
-                            <p id="password-strength-text" class="text-xs italic whitespace-nowrap"></p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit" id="register-button">
-                            <span id="register-button-text">Register</span>
-                            <span id="register-button-spinner" class="hidden">
-                                <i class="fas fa-spinner fa-spin"></i>
-                            </span>
-                        </button>
-                        <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="login.php">
-                            Login
-                        </a>
-                    </div>
-                    <input type="hidden" name="ref" value="<?php echo htmlspecialchars($_GET['ref'] ?? ''); ?>">
-                </form>
+<body>
+    <div class="login-container">
+        <div class="login-form-container">
+            <div class="form-header">
+                <?php if (!empty($settings['site_logo'])): ?>
+                    <img src="<?= htmlspecialchars($settings['site_logo']) ?>" alt="Site Logo">
+                <?php else: ?>
+                    <h1><?= htmlspecialchars($settings['site_name'] ?? 'Welcome') ?></h1>
+                <?php endif; ?>
+                <p>Create your account to get started</p>
+            </div>
+
+            <?php
+            if (isset($_SESSION['register_error'])) {
+                echo '<div class="alert alert-error">' . htmlspecialchars($_SESSION['register_error']) . '</div>';
+                unset($_SESSION['register_error']);
+            }
+            ?>
+
+            <form action="auth_user.php?action=register" method="POST">
+                <div class="input-group">
+                    <label for="name">Full Name</label>
+                    <input id="name" name="name" type="text" placeholder="John Doe" required autocomplete="name">
+                </div>
+                 <div class="input-group">
+                    <label for="email">Email Address</label>
+                    <input id="email" name="email" type="email" placeholder="you@example.com" required autocomplete="email">
+                </div>
+                 <div class="input-group">
+                    <label for="phone">Phone Number</label>
+                    <input id="phone" name="phone" type="tel" placeholder="08012345678" required autocomplete="tel">
+                </div>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" placeholder="••••••••" required autocomplete="new-password">
+                    <i class="fas fa-eye password-toggle" id="togglePassword"></i>
+                </div>
+                <div class="flex items-center space-x-2 mb-4">
+                    <div id="password-strength-meter"><div id="password-strength-bar" style="width: 0%"></div></div>
+                    <p id="password-strength-text" class="text-xs italic whitespace-nowrap"></p>
+                </div>
+                <input type="hidden" name="ref" value="<?= htmlspecialchars($_GET['ref'] ?? ''); ?>">
+                <button type="submit" id="register-button" class="submit-btn">Create Account</button>
+            </form>
+            <div class="form-footer">
+                <p>Already have an account? <a href="login.php">Sign In</a></p>
             </div>
         </div>
+        <div class="login-image-container"></div>
     </div>
-    <div id="password-modal" class="fixed z-10 inset-0 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-            <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                            <svg class="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                                Weak Password
-                            </h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-500">
-                                    Your password is too weak. Please use a stronger password. A strong password should contain a mix of uppercase and lowercase letters, numbers, and special characters. For example: `Letters2025@`
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" id="close-modal" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
-                        OK
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+
     <script>
         const passwordInput = document.getElementById('password');
         const passwordStrengthBar = document.getElementById('password-strength-bar');
         const passwordStrengthText = document.getElementById('password-strength-text');
         const registerButton = document.getElementById('register-button');
-        const registerButtonText = document.getElementById('register-button-text');
-        const registerButtonSpinner = document.getElementById('register-button-spinner');
-        const passwordModal = document.getElementById('password-modal');
-        const closeModalButton = document.getElementById('close-modal');
-        const togglePassword = document.getElementById('toggle-password');
+        const togglePassword = document.getElementById('togglePassword');
 
-        registerButton.disabled = true;
-
-        document.querySelector('form').addEventListener('submit', () => {
-            registerButton.disabled = true;
-            registerButtonText.classList.add('hidden');
-            registerButtonSpinner.classList.remove('hidden');
-        });
-
-        togglePassword.addEventListener('click', () => {
+        togglePassword.addEventListener('click', function () {
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
-
-            if (type === 'password') {
-                togglePassword.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                `;
-            } else {
-                togglePassword.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7 .95-3.11 3.843-5.48 7.4-6.225M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c1.13 0 2.212.206 3.23.588M21 21l-4.35-4.35" />
-                `;
-            }
+            this.classList.toggle('fa-eye-slash');
         });
-
-        registerButton.addEventListener('click', (e) => {
-            if (passwordInput.value.length > 0 && calculateStrength(passwordInput.value) < 80) {
-                e.preventDefault();
-                passwordModal.classList.remove('hidden');
-            }
-        });
-
-        closeModalButton.addEventListener('click', () => {
-            passwordModal.classList.add('hidden');
-        });
-
-        function calculateStrength(password) {
-            let strength = 0;
-            if (password.length >= 6) {
-                strength += 25;
-            }
-            if (password.match(/[a-z]/)) {
-                strength += 25;
-            }
-            if (password.match(/[A-Z]/)) {
-                strength += 25;
-            }
-            if (password.match(/[0-9]/)) {
-                strength += 25;
-            }
-            if (password.match(/[^a-zA-Z0-9]/)) {
-                strength += 25;
-            }
-            return strength;
-        }
 
         passwordInput.addEventListener('input', () => {
             const password = passwordInput.value;
             let strength = 0;
             let text = 'Weak';
-            let color = 'bg-red-500';
+            let color = '#EF4444'; // bg-red-500
 
-            if (password.length >= 6) {
-                strength += 25;
-            }
-            if (password.match(/[a-z]/)) {
-                strength += 25;
-            }
-            if (password.match(/[A-Z]/)) {
-                strength += 25;
-            }
-            if (password.match(/[0-9]/)) {
-                strength += 25;
-            }
-            if (password.match(/[^a-zA-Z0-9]/)) {
-                strength += 25;
+            if (password.length > 0) {
+                strength += 10;
+                if (password.length >= 8) strength += 15;
+                if (password.match(/[a-z]/)) strength += 15;
+                if (password.match(/[A-Z]/)) strength += 20;
+                if (password.match(/[0-9]/)) strength += 20;
+                if (password.match(/[^a-zA-Z0-9]/)) strength += 20;
             }
 
-            if (strength >= 100) {
+            if (strength > 80) {
                 text = 'Very Strong';
-                color = 'bg-green-500';
-            } else if (strength >= 75) {
+                color = '#22C55E'; // bg-green-500
+            } else if (strength > 60) {
                 text = 'Strong';
-                color = 'bg-yellow-500';
-            } else if (strength >= 50) {
+                color = '#84CC16'; // bg-lime-500
+            } else if (strength > 40) {
                 text = 'Medium';
-                color = 'bg-blue-500';
+                color = '#F59E0B'; // bg-amber-500
+            } else if (strength > 0) {
+                text = 'Weak';
+                color = '#F87171'; // bg-red-400
+            } else {
+                text = '';
             }
 
             passwordStrengthBar.style.width = strength + '%';
-            passwordStrengthBar.className = `h-2.5 rounded-full ${color}`;
-            passwordStrengthText.innerText = `Password Strength: ${text}`;
+            passwordStrengthBar.style.backgroundColor = color;
+            passwordStrengthText.innerText = text;
 
-            if (strength >= 80) {
+            if (strength >= 50) {
                 registerButton.disabled = false;
-                registerButton.classList.remove('cursor-not-allowed', 'opacity-50');
             } else {
                 registerButton.disabled = true;
-                registerButton.classList.add('cursor-not-allowed', 'opacity-50');
             }
         });
     </script>

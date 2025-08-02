@@ -4,7 +4,8 @@
  * Interface for managing non-network service providers (e.g., Betting, Cable TV)
  */
 $title = 'Service Provider Manager';
-require_once(__DIR__ . '/includes/header.php');
+require_once(__DIR__ . '/../includes/session_config.php');
+require_once(__DIR__ . '/auth_check.php');
 require_once(__DIR__ . '/../includes/db.php');
 
 // Handle AJAX requests
@@ -54,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         exit;
     }
 }
+
+require_once(__DIR__ . '/includes/header.php');
 
 // Fetch all service providers
 try {
