@@ -1,8 +1,11 @@
 <?php
 $settings_file = 'settings.json';
-$settings = [];
-if (file_exists($settings_file)) {
-    $settings = json_decode(file_get_contents($settings_file), true);
+if (!file_exists($settings_file) || !is_readable($settings_file)) {
+    die("Configuration error: settings.json not found or not readable.");
+}
+$settings = json_decode(file_get_contents($settings_file), true);
+if (json_last_error() !== JSON_ERROR_NONE) {
+    die("Configuration error: Invalid JSON in settings.json.");
 }
 ?>
 <!DOCTYPE html>

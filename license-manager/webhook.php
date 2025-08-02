@@ -18,7 +18,12 @@ if (hash_hmac('sha512', $event, $paystack_secret_key) !== $signature) {
 $event_data = json_decode($event, true);
 
 // Log the event for debugging
-file_put_contents('webhook.log', $event . "\n", FILE_APPEND);
+$log_file = 'webhook.log';
+if (is_writable($log_file) || !file_exists($log_file)) {
+    file_put_contents($log_file, $event . "\n", FILE_APPEND);
+} else {
+    // If logging fails, we can't do much, but we shouldn't crash.
+}
 
 if ($event_data['event'] === 'charge.success') {
     $customer_email = $event_data['data']['customer']['email'];
@@ -27,11 +32,16 @@ if ($event_data['event'] === 'charge.success') {
     // Generate a new license key
     $new_license_key = 'VALID-' . strtoupper(bin2hex(random_bytes(8)));
 
-    // --- Placeholder for database interaction ---
-    // In a real application, you would save the license key, email, and domain to your database.
-    $license_db_file = 'licenses.db.txt';
-    $db_entry = "{$new_license_key},{$customer_email},{$domain}\n";
-    file_put_contents($license_db_file, $db_entry, FILE_APPEND);
+    // --- Database interaction ---
+    require_once('db.php');
+    try {
+        $stmt = $pdo->prepare("INSERT INTO licenses (license_key, domain, customer_email, status) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$new_license_key, $domain, $customer_email, 'active']);
+    } catch (PDOException $e) {
+        file_put_contents('error.log', "Database error: " . $e->getMessage() . "\n", FILE_APPEND);
+        http_response_code(500);
+        exit();
+    }
     // -----------------------------------------
 
     // --- Send email notification ---
