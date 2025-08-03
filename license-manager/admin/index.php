@@ -5,20 +5,26 @@ if (isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
+require_once('../db.php');
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // In a real application, you would use a database to store admin credentials.
-    // For now, we'll use hardcoded credentials for simplicity.
-    $admin_user = 'admin';
-    $admin_pass_hash = password_hash('password', PASSWORD_DEFAULT);
-
     if (isset($_POST['username']) && isset($_POST['password'])) {
-        if ($_POST['username'] === $admin_user && password_verify($_POST['password'], $admin_pass_hash)) {
-            $_SESSION['admin_logged_in'] = true;
-            header('Location: dashboard.php');
-            exit();
-        } else {
-            $error = 'Invalid username or password.';
+        try {
+            $stmt = $pdo->prepare("SELECT id, username, password FROM admins WHERE username = ?");
+            $stmt->execute([$_POST['username']]);
+            $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($admin && password_verify($_POST['password'], $admin['password'])) {
+                $_SESSION['admin_logged_in'] = true;
+                $_SESSION['admin_id'] = $admin['id'];
+                header('Location: dashboard.php');
+                exit();
+            } else {
+                $error = 'Invalid username or password.';
+            }
+        } catch (PDOException $e) {
+            $error = 'Database error. Please try again later.';
         }
     }
 }

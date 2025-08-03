@@ -5,27 +5,69 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-$settings_file = '../settings.json';
-$settings = [];
-if (file_exists($settings_file)) {
-    $settings = json_decode(file_get_contents($settings_file), true);
-}
+require_once('../db.php');
 
 $success_message = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!empty($_POST['password'])) {
-        if ($_POST['password'] === $_POST['password_confirm']) {
-            $settings['admin_user'] = $_POST['username'];
-            $settings['admin_pass_hash'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
-            $success_message = 'Password updated successfully.';
-        } else {
-            $error = 'Passwords do not match.';
-        }
+$error = '';
+$current_username = '';
+
+// We must have an admin_id in the session now, set by the login page.
+if (!isset($_SESSION['admin_id'])) {
+    // If not, something is wrong, maybe the user session is old.
+    // Forcing a re-login is the safest option.
+    header('Location: logout.php');
+    exit();
+}
+$admin_id = $_SESSION['admin_id'];
+
+// Get current admin username to display in the form
+try {
+    $stmt = $pdo->prepare("SELECT username FROM admins WHERE id = ?");
+    $stmt->execute([$admin_id]);
+    $admin = $stmt->fetch(PDO::FETCH_ASSOC);
+    if ($admin) {
+        $current_username = $admin['username'];
     } else {
-        $settings['admin_user'] = $_POST['username'];
-        $success_message = 'Username updated successfully.';
+        // This case is unlikely if session is valid, but good to handle.
+        $error = "Could not find your admin profile.";
     }
-    file_put_contents($settings_file, json_encode($settings, JSON_PRETTY_PRINT));
+} catch (PDOException $e) {
+    $error = "Database error: " . $e->getMessage();
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $new_username = $_POST['username'];
+    $new_password = $_POST['password'];
+    $confirm_password = $_POST['password_confirm'];
+
+    if (empty($new_username)) {
+        $error = "Username cannot be empty.";
+    } elseif (!empty($new_password) && $new_password !== $confirm_password) {
+        $error = 'Passwords do not match.';
+    } else {
+        try {
+            if (!empty($new_password)) {
+                // Update both username and password
+                $password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+                $stmt = $pdo->prepare("UPDATE admins SET username = ?, password = ? WHERE id = ?");
+                $stmt->execute([$new_username, $password_hash, $admin_id]);
+                $success_message = 'Profile updated successfully.';
+            } else {
+                // Update only username
+                $stmt = $pdo->prepare("UPDATE admins SET username = ? WHERE id = ?");
+                $stmt->execute([$new_username, $admin_id]);
+                $success_message = 'Username updated successfully.';
+            }
+            // Update the username displayed on the form
+            $current_username = $new_username;
+        } catch (PDOException $e) {
+            if ($e->errorInfo[1] == 1062) { // SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry
+                $error = "That username is already taken.";
+            } else {
+                $error = "A database error occurred: " . $e->getMessage();
+            }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -83,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <form method="POST">
                     <div class="input-group">
                         <label>Username</label>
-                        <input type="text" name="username" value="<?= htmlspecialchars($settings['admin_user'] ?? 'admin') ?>" required>
+                        <input type="text" name="username" value="<?= htmlspecialchars($current_username) ?>" required>
                     </div>
                     <div class="input-group">
                         <label>New Password (leave blank to keep current password)</label>

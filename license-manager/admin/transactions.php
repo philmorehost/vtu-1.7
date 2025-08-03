@@ -5,18 +5,20 @@ if (!isset($_SESSION['admin_logged_in'])) {
     exit();
 }
 
-// For simplicity, we're reading from the log file.
-// In a real application, you would have a 'transactions' table in your database.
-$log_file = '../webhook.log';
-$transactions = [];
-if (file_exists($log_file)) {
-    $raw_logs = file($log_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    foreach ($raw_logs as $log) {
-        $data = json_decode($log, true);
-        if ($data && isset($data['event']) && $data['event'] === 'charge.success') {
-            $transactions[] = $data['data'];
-        }
-    }
+require_once('../db.php');
+
+try {
+    $stmt = $pdo->query("
+        SELECT t.created_at, l.customer_email, t.amount, t.currency, t.transaction_ref, l.domain
+        FROM transactions t
+        LEFT JOIN licenses l ON t.license_id = l.id
+        ORDER BY t.created_at DESC
+    ");
+    $transactions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // Handle database error
+    $error = "Database error: " . $e->getMessage();
+    $transactions = [];
 }
 ?>
 <!DOCTYPE html>
@@ -41,6 +43,7 @@ if (file_exists($log_file)) {
         table { width: 100%; border-collapse: collapse; }
         th, td { text-align: left; padding: 1rem; border-bottom: 1px solid #e5e7eb; }
         th { background-color: #f9fafb; }
+        .error { color: #b91c1c; background-color: #fef2f2; border: 1px solid #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
     </style>
 </head>
 <body>
@@ -64,6 +67,9 @@ if (file_exists($log_file)) {
                 <h3>All Transactions</h3>
             </div>
             <div class="card-body">
+                <?php if (!empty($error)): ?>
+                    <div class="error"><?= htmlspecialchars($error) ?></div>
+                <?php endif; ?>
                 <table>
                     <thead>
                         <tr>
@@ -75,15 +81,21 @@ if (file_exists($log_file)) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach (array_reverse($transactions) as $tx): ?>
+                        <?php if (!empty($transactions)): ?>
+                            <?php foreach ($transactions as $tx): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($tx['created_at']))) ?></td>
+                                    <td><?= htmlspecialchars($tx['customer_email']) ?></td>
+                                    <td><?= htmlspecialchars(number_format($tx['amount'], 2)) ?> <?= htmlspecialchars($tx['currency']) ?></td>
+                                    <td><?= htmlspecialchars($tx['transaction_ref']) ?></td>
+                                    <td><?= htmlspecialchars($tx['domain']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
                             <tr>
-                                <td><?= htmlspecialchars(date('Y-m-d H:i:s', strtotime($tx['paid_at']))) ?></td>
-                                <td><?= htmlspecialchars($tx['customer']['email']) ?></td>
-                                <td><?= htmlspecialchars($tx['amount'] / 100) ?> <?= htmlspecialchars($tx['currency']) ?></td>
-                                <td><?= htmlspecialchars($tx['reference']) ?></td>
-                                <td><?= htmlspecialchars($tx['metadata']['domain'] ?? 'N/A') ?></td>
+                                <td colspan="5">No transactions found.</td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
