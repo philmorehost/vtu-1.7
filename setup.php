@@ -27,10 +27,43 @@ function is_installed() {
  * @return bool
  */
 function verify_license($license_key, $domain_name) {
-    // Placeholder for license verification logic.
-    // In a real application, this would make a cURL request to a license server.
-    // For now, we'll just check if the license key is not empty.
-    return !empty($license_key);
+    // Construct the API URL dynamically
+    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
+    $host = $_SERVER['HTTP_HOST'];
+    $script_directory = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    $api_url = "{$protocol}://{$host}{$script_directory}/license-manager/api.php";
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
+        'key' => $license_key,
+        'domain' => $domain_name
+    ]));
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Note: In production, you might want to configure this securely
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+    $api_response = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        // cURL error
+        curl_close($ch);
+        return false;
+    }
+
+    curl_close($ch);
+
+    if ($http_code == 200 && $api_response) {
+        $data = json_decode($api_response, true);
+        if (isset($data['status']) && $data['status'] == 1) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
