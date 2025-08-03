@@ -4,18 +4,41 @@ $license_key = 'N/A';
 $error = '';
 
 if (isset($_GET['ref'])) {
-    try {
-        $stmt = $pdo->prepare("SELECT l.license_key FROM licenses l JOIN transactions t ON l.id = t.license_id WHERE t.transaction_ref = ?");
-        $stmt->execute([$_GET['ref']]);
-        $license = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($license) {
-            $license_key = $license['license_key'];
-        } else {
-            $error = "Could not find a license for this transaction. Please check your email or contact support.";
+    $ref = $_GET['ref'];
+    $attempts = 0;
+    $max_attempts = 5; // Try 5 times
+    $license = null;
+
+    while ($attempts < $max_attempts) {
+        try {
+            $stmt = $pdo->prepare("SELECT l.license_key FROM licenses l JOIN transactions t ON l.id = t.license_id WHERE t.transaction_ref = ?");
+            $stmt->execute([$ref]);
+            $license = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($license) {
+                $license_key = $license['license_key'];
+                $error = ''; // Clear any previous error
+                break; // Exit loop if license is found
+            }
+        } catch (PDOException $e) {
+            $error = "A database error occurred. Please contact support.";
+            // Stop retrying if a database error occurs
+            break;
         }
-    } catch (PDOException $e) {
-        $error = "A database error occurred. Please contact support.";
+
+        // If license not found, set a pending message and wait before retrying
+        $error = "Your transaction is being processed. Please wait...";
+        $attempts++;
+        if ($attempts < $max_attempts) {
+            sleep(2); // Wait 2 seconds before the next attempt
+        }
     }
+
+    // After all attempts, if license is still not found, set the final error message.
+    if (!$license && strpos($error, 'processed') !== false) {
+        $error = "Could not find a license for this transaction. Please check your email or contact support with reference: " . htmlspecialchars($ref);
+    }
+
 } else {
     $error = "No transaction reference provided.";
 }
