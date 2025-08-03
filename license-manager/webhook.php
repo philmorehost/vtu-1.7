@@ -4,12 +4,18 @@
 // Get the POST data.
 $event = file_get_contents('php://input');
 
-// For security, you should verify the webhook signature.
-// This is a simplified example.
-$paystack_secret_key = 'YOUR_PAYSTACK_SECRET_KEY'; // Replace with your secret key
-$signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'];
+// Load settings to get the secret key
+$settings_file = 'settings.json';
+$settings = [];
+if (file_exists($settings_file)) {
+    $settings = json_decode(file_get_contents($settings_file), true);
+}
 
-if (hash_hmac('sha512', $event, $paystack_secret_key) !== $signature) {
+// For security, you should verify the webhook signature.
+$paystack_secret_key = $settings['paystack_secret_key'] ?? '';
+$signature = $_SERVER['HTTP_X_PAYSTACK_SIGNATURE'] ?? '';
+
+if (!$signature || hash_hmac('sha512', $event, $paystack_secret_key) !== $signature) {
     // Invalid signature
     http_response_code(401);
     exit();
