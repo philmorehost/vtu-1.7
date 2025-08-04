@@ -5,10 +5,15 @@
 // 2. Include this file at the top of your protected PHP scripts (e.g., `require_once('system_health.php');`).
 // 3. Call the check function, e.g., `_0x2a1b_c4d3e5();`
 
+// Start session if it hasn't been started already
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 // --- Configuration ---
-// Replace with your actual license key and the URL to your license manager API.
-$_0x4a3b_d5e2c1 = 'YOUR_LICENSE_KEY'; // Obfuscated variable for license key
-$_0x5b2c_e4d3f2 = 'https://your-license-manager.com/api.php'; // Obfuscated variable for API URL
+// These variables are now populated from the session after a successful setup.
+$_0x4a3b_d5e2c1 = $_SESSION['license_key'] ?? ''; // Obfuscated variable for license key
+$_0x5b2c_e4d3f2 = $_SESSION['license_server_url'] ?? ''; // Obfuscated variable for API URL
 
 // --- State Management ---
 // This file will store the last check date. It should be writable by the script.
@@ -17,6 +22,11 @@ $_0x6c1d_f3e2a1 = __DIR__ . '/.status_cache'; // Obfuscated variable for cache f
 // The main check function.
 function _0x2a1b_c4d3e5() {
     global $_0x4a3b_d5e2c1, $_0x5b2c_e4d3f2, $_0x6c1d_f3e2a1;
+
+    // Do not run check if license details are not set (e.g., during setup)
+    if (empty($_0x4a3b_d5e2c1) || empty($_0x5b2c_e4d3f2)) {
+        return;
+    }
 
     $last_check_date = 0;
     if (file_exists($_0x6c1d_f3e2a1)) {
