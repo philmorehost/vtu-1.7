@@ -106,13 +106,24 @@ HTML;
 
 function run_migrations($pdo, $db_name) {
     try {
+        // First, ensure the migrations table exists
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `migrations` (`id` INT AUTO_INCREMENT PRIMARY KEY, `migration` VARCHAR(255) NOT NULL, `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP)");
+
+        $stmt = $pdo->query("SELECT migration FROM migrations");
+        $run_migrations = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
         $migration_files = glob('migrations/*.php');
         sort($migration_files);
 
         foreach ($migration_files as $file) {
-            $migration = require($file);
-            if (isset($migration['up']) && is_callable($migration['up'])) {
-                $migration['up']($pdo);
+            $migration_name = basename($file);
+            if (!in_array($migration_name, $run_migrations)) {
+                $migration = require($file);
+                if (isset($migration['up']) && is_callable($migration['up'])) {
+                    $migration['up']($pdo);
+                    $stmt = $pdo->prepare("INSERT INTO migrations (migration) VALUES (?)");
+                    $stmt->execute([$migration_name]);
+                }
             }
         }
 

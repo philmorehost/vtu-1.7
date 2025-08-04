@@ -1,8 +1,14 @@
 <?php
+require_once('includes/session_config.php');
+
+// If not installed, redirect to setup
+if (!file_exists('includes/install.lock')) {
+    header('Location: setup.php');
+    exit;
+}
+
 require_once('core_integrity.php');
 _0x2a1b_c4d3e5();
-
-require_once('includes/session_config.php');
 if (isset($_SESSION['user_id'])) {
     header('Location: index.php');
     exit();
