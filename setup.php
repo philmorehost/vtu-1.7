@@ -27,36 +27,40 @@ function is_installed() {
  * @return bool
  */
 function verify_license($license_key, $domain_name, $license_server_url) {
+    $result = ['success' => false, 'http_code' => 0, 'response_body' => ''];
+
     if (empty($license_server_url) || filter_var($license_server_url, FILTER_VALIDATE_URL) === false) {
-        return false;
+        $result['response_body'] = 'License server URL is not a valid URL.';
+        return $result;
     }
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $license_server_url);
     curl_setopt($ch, CURLOPT_POST, 1);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
-        'key' => $license_key,
-        'domain' => $domain_name
-    ]));
+    curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query(['key' => $license_key, 'domain' => $domain_name]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $api_response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $result['http_code'] = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $result['response_body'] = $api_response;
 
     if (curl_errno($ch)) {
+        $result['response_body'] = 'cURL Error: ' . curl_error($ch);
         curl_close($ch);
-        return false;
+        return $result;
     }
     curl_close($ch);
 
-    if ($http_code == 200 && $api_response) {
+    if ($result['http_code'] == 200 && $api_response) {
         $data = json_decode($api_response, true);
-        return isset($data['status']) && $data['status'] == 1;
+        if (isset($data['status']) && $data['status'] == 1) {
+            $result['success'] = true;
+        }
     }
-    return false;
+    return $result;
 }
 
 /**
@@ -203,19 +207,20 @@ switch ($step) {
             $domain_name = trim($_POST['domain_name'] ?? '');
             $license_server_url = trim($_POST['license_server_url'] ?? '');
 
-            // Add 'api.php' if the user forgets it
             if (!empty($license_server_url) && basename($license_server_url) !== 'api.php') {
                 $license_server_url = rtrim($license_server_url, '/') . '/api.php';
             }
 
-            if (verify_license($license_key, $domain_name, $license_server_url)) {
+            $verification_result = verify_license($license_key, $domain_name, $license_server_url);
+
+            if ($verification_result['success']) {
                 $_SESSION['license_key'] = $license_key;
                 $_SESSION['domain_name'] = $domain_name;
-                $_SESSION['license_server_url'] = $license_server_url; // Store in session
+                $_SESSION['license_server_url'] = $license_server_url;
                 header("Location: setup.php?step=2");
                 exit;
             } else {
-                $error_message = "<div class='error'>Invalid license key, domain, or server URL. Please try again.</div>";
+                $error_message = "<div class='error'>Validation failed. Please check your details and try again.<br><br><strong>Debug Info:</strong><br>HTTP Code: " . htmlspecialchars($verification_result['http_code']) . "<br>Response Body: " . htmlspecialchars($verification_result['response_body']) . "</div>";
             }
         }
 
