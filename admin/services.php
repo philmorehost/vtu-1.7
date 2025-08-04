@@ -97,20 +97,25 @@ foreach ($allProducts as $product) {
     $services[$product['service_type']][] = $product;
 }
 
-// Fetch networks for dropdowns
+// Fetch networks and service providers for the new routing logic
+$routingOptions = [];
 try {
-    $stmt = $pdo->query("SELECT * FROM networks ORDER BY name ASC");
-    $networks = $stmt->fetchAll();
-} catch (Exception $e) {
-    $networks = [];
-}
+    $networks = $pdo->query("SELECT * FROM networks ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($networks as $network) {
+        // Network-based services can be routed via a network
+        $routingOptions['data'][] = ['type' => 'network', 'id' => $network['id'], 'name' => $network['display_name']];
+        $routingOptions['airtime'][] = ['type' => 'network', 'id' => $network['id'], 'name' => $network['display_name']];
+        $routingOptions['recharge'][] = ['type' => 'network', 'id' => $network['id'], 'name' => $network['display_name']];
+    }
 
-// Fetch service providers for dropdowns
-try {
-    $stmt = $pdo->query("SELECT * FROM service_providers ORDER BY name ASC");
-    $service_providers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $service_providers = $pdo->query("SELECT * FROM service_providers ORDER BY name ASC")->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($service_providers as $provider) {
+        // Any service can also be routed via a specific provider of that service type
+        $routingOptions[$provider['service_type']][] = ['type' => 'provider', 'id' => $provider['id'], 'name' => $provider['name']];
+    }
 } catch (Exception $e) {
-    $service_providers = [];
+    // Handle exceptions if the database query fails
+    $routingOptions = [];
 }
 ?>
 
