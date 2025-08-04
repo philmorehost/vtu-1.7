@@ -6,15 +6,15 @@ return [
     "up" => function($pdo) {
         // Seed Networks
         $networks = [
-            ['id' => 1, 'name' => 'mtn', 'display_name' => 'MTN'],
-            ['id' => 2, 'name' => 'glo', 'display_name' => 'GLO'],
-            ['id' => 3, 'name' => 'airtel', 'display_name' => 'Airtel'],
-            ['id' => 4, 'name' => '9mobile', 'display_name' => '9mobile'],
+            ['id' => 1, 'name' => 'mtn', 'display_name' => 'MTN', 'code' => 'mtn'],
+            ['id' => 2, 'name' => 'glo', 'display_name' => 'GLO', 'code' => 'glo'],
+            ['id' => 3, 'name' => 'airtel', 'display_name' => 'Airtel', 'code' => 'airtel'],
+            ['id' => 4, 'name' => '9mobile', 'display_name' => '9mobile', 'code' => '9mobile'],
         ];
 
-        $stmt = $pdo->prepare("INSERT INTO networks (id, name, display_name) VALUES (?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO networks (id, name, display_name, code) VALUES (?, ?, ?, ?)");
         foreach ($networks as $network) {
-            $stmt->execute([$network['id'], $network['name'], $network['display_name']]);
+            $stmt->execute([$network['id'], $network['name'], $network['display_name'], $network['code']]);
         }
 
         // Seed Service Providers
