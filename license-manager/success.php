@@ -56,8 +56,13 @@ if (isset($_GET['ref'])) {
         h1 { color: #16a34a; font-size: 2.25rem; margin-bottom: 1rem; }
         p { color: #6b7280; margin-bottom: 2rem; }
         .license-key { background: #f3f4f6; border: 2px dashed #d1d5db; padding: 1rem; border-radius: 0.5rem; font-size: 1.25rem; font-weight: 600; margin-bottom: 2rem; word-wrap: break-word; }
-        .btn { background-color: #3b82f6; color: #fff; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; }
+        .btn { background-color: #3b82f6; color: #fff; padding: 0.75rem 1.5rem; border-radius: 0.5rem; text-decoration: none; font-weight: 500; display: inline-block; margin-top: 1rem; }
         .error { color: #b91c1c; background-color: #fef2f2; border: 1px solid #fca5a5; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; }
+        .installation-guide { text-align: left; margin-top: 2.5rem; padding: 1.5rem; background-color: #f9fafb; border-radius: 0.5rem; border: 1px solid #e5e7eb; }
+        .installation-guide h3 { margin-top: 0; color: #111827; }
+        .installation-guide ol { padding-left: 1.5rem; }
+        .installation-guide li { margin-bottom: 0.75rem; }
+        .installation-guide code { background-color: #e5e7eb; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-family: 'Courier New', Courier, monospace; }
     </style>
 </head>
 <body>
@@ -70,6 +75,21 @@ if (isset($_GET['ref'])) {
             <p>Thank you for your purchase. Your license key has been sent to your email. You can also copy it from below.</p>
             <div class="license-key" id="licenseKey"><?= htmlspecialchars($license_key) ?></div>
             <button class="btn" onclick="copyLicense()">Copy Key</button>
+
+            <div class="installation-guide">
+                <h3>Installation Guide</h3>
+                <ol>
+                    <li>Download the main script and upload it to the server where you wish to install it.</li>
+                    <li>Navigate to the <strong>setup.php</strong> file in your browser to begin installation.</li>
+                    <li>You will be asked for the following details on the first step:</li>
+                    <ul>
+                        <li><strong>License Server URL:</strong> <code><?= htmlspecialchars((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]") ?></code></li>
+                        <li><strong>Your License Key:</strong> (The key shown above)</li>
+                        <li><strong>Your Domain Name:</strong> The domain you entered during purchase.</li>
+                    </ul>
+                    <li>Follow the on-screen instructions to complete the installation.</li>
+                </ol>
+            </div>
         <?php endif; ?>
     </div>
     <script>
