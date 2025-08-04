@@ -496,36 +496,32 @@ function toggleServiceFields(serviceType) {
     providerField.classList.add('hidden');
     dataFields.classList.add('hidden');
 
+    // Always filter the service providers based on the selected service type
+    const options = productProviderSelect.options;
+    let hasVisibleProvider = false;
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].value === "") {
+            options[i].style.display = ''; // Always show the "Select Provider" option
+            continue;
+        }
+        const optionServiceType = options[i].getAttribute('data-service-type');
+        if (serviceType && optionServiceType === serviceType) {
+            options[i].style.display = '';
+            hasVisibleProvider = true;
+        } else {
+            options[i].style.display = 'none';
+        }
+    }
+
     // Show fields based on service type
     if (serviceType === 'data' || serviceType === 'airtime') {
         networkField.classList.remove('hidden');
+        providerField.classList.remove('hidden');
         if (serviceType === 'data') {
             dataFields.classList.remove('hidden');
         }
-        // Ensure all provider options are visible when not used
-        const options = productProviderSelect.options;
-        for (let i = 0; i < options.length; i++) {
-            options[i].style.display = '';
-        }
     } else if (serviceType) {
         providerField.classList.remove('hidden');
-        // Filter providers based on the selected service type
-        const options = productProviderSelect.options;
-        for (let i = 0; i < options.length; i++) {
-            if (options[i].value === "") continue;
-            const optionServiceType = options[i].getAttribute('data-service-type');
-            if (optionServiceType === serviceType) {
-                options[i].style.display = '';
-            } else {
-                options[i].style.display = 'none';
-            }
-        }
-    } else {
-        // If no service type is selected, ensure all provider options are visible
-        const options = productProviderSelect.options;
-        for (let i = 0; i < options.length; i++) {
-            options[i].style.display = '';
-        }
     }
 }
 
