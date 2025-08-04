@@ -5,8 +5,6 @@
 session_start();
 
 // --- Configuration ---
-// IMPORTANT: Set this to the full URL of the api.php file in your license manager installation.
-$license_server_url = 'https://manager.pmhserver.name.ng/api.php';
 $install_lock_file = 'includes/install.lock';
 $config_file = 'includes/config.php';
 
@@ -28,11 +26,8 @@ function is_installed() {
  * @param string $domain_name
  * @return bool
  */
-function verify_license($license_key, $domain_name) {
-    global $license_server_url; // Use the configured URL
-
-    if (empty($license_server_url)) {
-        // Don't proceed if the URL is not set.
+function verify_license($license_key, $domain_name, $license_server_url) {
+    if (empty($license_server_url) || filter_var($license_server_url, FILTER_VALIDATE_URL) === false) {
         return false;
     }
 
@@ -45,27 +40,22 @@ function verify_license($license_key, $domain_name) {
     ]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // Note: In production, you might want to configure this securely
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
     $api_response = curl_exec($ch);
     $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
     if (curl_errno($ch)) {
-        // cURL error
         curl_close($ch);
         return false;
     }
-
     curl_close($ch);
 
     if ($http_code == 200 && $api_response) {
         $data = json_decode($api_response, true);
-        if (isset($data['status']) && $data['status'] == 1) {
-            return true;
-        }
+        return isset($data['status']) && $data['status'] == 1;
     }
-
     return false;
 }
 
@@ -209,16 +199,23 @@ switch ($step) {
         // Face 1: Welcome & License
         $error_message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $license_key = $_POST['license_key'] ?? '';
-            $domain_name = $_POST['domain_name'] ?? '';
+            $license_key = trim($_POST['license_key'] ?? '');
+            $domain_name = trim($_POST['domain_name'] ?? '');
+            $license_server_url = trim($_POST['license_server_url'] ?? '');
 
-            if (verify_license($license_key, $domain_name)) {
+            // Add 'api.php' if the user forgets it
+            if (!empty($license_server_url) && basename($license_server_url) !== 'api.php') {
+                $license_server_url = rtrim($license_server_url, '/') . '/api.php';
+            }
+
+            if (verify_license($license_key, $domain_name, $license_server_url)) {
                 $_SESSION['license_key'] = $license_key;
                 $_SESSION['domain_name'] = $domain_name;
+                $_SESSION['license_server_url'] = $license_server_url; // Store in session
                 header("Location: setup.php?step=2");
                 exit;
             } else {
-                $error_message = "<div class='error'>Invalid license key or domain. Please try again.</div>";
+                $error_message = "<div class='error'>Invalid license key, domain, or server URL. Please try again.</div>";
             }
         }
 
@@ -227,6 +224,11 @@ switch ($step) {
             {$error_message}
             <p>Welcome to the application installer. This wizard will guide you through the installation process.</p>
             <form action='setup.php?step=1' method='post'>
+                <div>
+                    <label for='license_server_url'>License Server URL</label>
+                    <input type='text' id='license_server_url' name='license_server_url' placeholder='e.g., https://manager.example.com' required>
+                    <small>Enter the full URL to your license manager installation.</small>
+                </div>
                 <div>
                     <label for='license_key'>License Key</label>
                     <input type='text' id='license_key' name='license_key' required>
