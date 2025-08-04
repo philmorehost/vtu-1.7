@@ -130,58 +130,26 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                         <button type="button" class="w-full flex justify-between items-center py-2.5 px-2 rounded transition duration-200 hover:bg-gray-700 text-left focus:outline-none">
                             <span class="flex items-center">
                                 <i class="fas fa-code mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">API SETTINGS</span>
+                                <span x-show="!sidebarCollapsed">API Settings</span>
                             </span>
                             <i class="fas fa-chevron-down" x-show="!sidebarCollapsed"></i>
                         </button>
                         <div class="hidden group-hover:block ml-0 md:ml-8">
-                            <a href="/admin/services.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-chart-line w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
-                                <span x-show="!sidebarCollapsed">Service Prices</span>
-                            </a>
-                            <a href="/admin/apimanager/airtime.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-mobile-alt mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Airtime</span>
-                            </a>
-                            <a href="/admin/apimanager/data.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-wifi mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Data</span>
-                            </a>
-                            <a href="/admin/apimanager/bulk_sms.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-envelope mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Bulk SMS</span>
-                            </a>
-                            <a href="/admin/apimanager/cabletv.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-tv mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Cable TV</span>
-                            </a>
-                            <a href="/admin/apimanager/electric.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-bolt mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Electricity</span>
-                            </a>
-                            <a href="/admin/apimanager/exam_pin.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-key mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Exam Pin</span>
-                            </a>
-                            <a href="/admin/apimanager/recharge_card.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-credit-card mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Recharge Card</span>
-                            </a>
-                            <a href="/admin/apimanager/betting.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-futbol mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Betting</span>
-                            </a>
-                            <a href="/admin/apimanager/gift_card.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-gift mr-0 md:mr-2"></i>
-                                <span x-show="!sidebarCollapsed">Gift Card</span>
+                            <a href="/admin/apimanager/modular_manager.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
+                                <i class="fas fa-cogs w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Modular Manager</span>
                             </a>
                             <a href="/admin/apimanager/api_gateway_manager.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
-                                <i class="fas fa-code w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
-                                <span x-show="!sidebarCollapsed">API Manager</span>
+                                <i class="fas fa-route w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Legacy Gateway</span>
                             </a>
                             <a href="/admin/service_providers.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
                                 <i class="fas fa-handshake w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
                                 <span x-show="!sidebarCollapsed">Service Providers</span>
+                            </a>
+                             <a href="/admin/services.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
+                                <i class="fas fa-chart-line w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Service Prices</span>
                             </a>
                         </div>
                     </div>
