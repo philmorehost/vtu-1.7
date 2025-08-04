@@ -5,6 +5,8 @@
 session_start();
 
 // --- Configuration ---
+// IMPORTANT: Set this to the full URL of the api.php file in your license manager installation.
+$license_server_url = 'https://manager.pmhserver.name.ng/api.php';
 $install_lock_file = 'includes/install.lock';
 $config_file = 'includes/config.php';
 
@@ -27,14 +29,15 @@ function is_installed() {
  * @return bool
  */
 function verify_license($license_key, $domain_name) {
-    // Construct the API URL dynamically
-    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'];
-    $script_directory = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
-    $api_url = "{$protocol}://{$host}{$script_directory}/license-manager/api.php";
+    global $license_server_url; // Use the configured URL
+
+    if (empty($license_server_url)) {
+        // Don't proceed if the URL is not set.
+        return false;
+    }
 
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $api_url);
+    curl_setopt($ch, CURLOPT_URL, $license_server_url);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
         'key' => $license_key,
