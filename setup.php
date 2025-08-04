@@ -172,13 +172,7 @@ function run_migrations($pdo, $db_name) {
             $pdo->exec("INSERT INTO site_settings (id, site_name) VALUES (1, 'My VTU')");
         }
 
-        $stmt = $pdo->prepare("SELECT id FROM admins WHERE email = 'admin@example.com'");
-        $stmt->execute();
-        if ($stmt->rowCount() == 0) {
-            $admin_pass = password_hash('password', PASSWORD_DEFAULT);
-            $pdo->exec("INSERT INTO admins (name, email, password) VALUES ('Admin', 'admin@example.com', '$admin_pass')");
-        }
-
+        // Admin user will be created in the setup process.
         // ... (add all other seeding data from migration files)
 
         return true;
@@ -322,8 +316,7 @@ switch ($step) {
                     $pdo->exec("USE `{$db_name}`");
 
                     if (run_migrations($pdo, $db_name)) {
-                        // Create install lock file
-                        file_put_contents($install_lock_file, 'installed');
+                        // Database is set up, proceed to admin creation
                         header("Location: setup.php?step=4");
                         exit;
                     } else {
@@ -353,14 +346,61 @@ switch ($step) {
         break;
 
     case '4':
-        // Face 4: Complete
+        // Face 4: Create Admin User
+        $error_message = '';
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $admin_name = $_POST['admin_name'] ?? '';
+            $admin_email = $_POST['admin_email'] ?? '';
+            $admin_pass = $_POST['admin_pass'] ?? '';
+
+            if (!empty($admin_name) && !empty($admin_email) && !empty($admin_pass) && filter_var($admin_email, FILTER_VALIDATE_EMAIL)) {
+                require_once($config_file);
+                try {
+                    $pdo = new PDO("mysql:host=" . DB_HOST . ";dbname=" . DB_NAME, DB_USER, DB_PASS);
+                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+                    $password_hash = password_hash($admin_pass, PASSWORD_DEFAULT);
+                    $stmt = $pdo->prepare("INSERT INTO admins (name, email, password) VALUES (?, ?, ?)");
+                    $stmt->execute([$admin_name, $admin_email, $password_hash]);
+
+                    // Create install lock file
+                    file_put_contents($install_lock_file, 'installed');
+
+                    header("Location: setup.php?step=5");
+                    exit;
+                } catch (PDOException $e) {
+                    $error_message = "<div class='error'>Database error: " . $e->getMessage() . "</div>";
+                }
+            } else {
+                $error_message = "<div class='error'>Please fill in all fields with valid data.</div>";
+            }
+        }
+        $content = "
+            <h3>Create Admin User</h3>
+            {$error_message}
+            <p>Create your administrator account.</p>
+            <form action='setup.php?step=4' method='post'>
+                <div><label>Name</label><input type='text' name='admin_name' required></div>
+                <div><label>Email</label><input type='email' name='admin_email' required></div>
+                <div><label>Password</label><input type='password' name='admin_pass' required></div>
+                <button type='submit' class='btn'>Create Admin & Finish</button>
+            </form>
+        ";
+        render_page('Create Admin', $content);
+        break;
+
+    case '5':
+        // Face 5: Complete
         $content = "
             <div class='success'>Congratulations! The application has been installed successfully.</div>
-            <h3>Admin Login Details</h3>
-            <p><strong>Username:</strong> admin@example.com</p>
-            <p><strong>Password:</strong> password</p>
-            <p>For security reasons, please change your password immediately after logging in.</p>
-            <a href='admin/login.php' class='btn'>Login to Admin Panel</a>
+            <h3>Next Steps</h3>
+            <ol>
+                <li><strong>Login to your Admin Panel:</strong> Use the credentials you just created to <a href='admin/index.php'>log in to the admin area</a>.</li>
+                <li><strong>Configure Site Settings:</strong> Go to the 'Settings' page to set up your site name, payment gateways, and SMTP details for email.</li>
+                <li><strong>Set Up API Providers:</strong> In the admin panel, navigate to 'API Manager' to configure the providers for services like airtime, data, etc.</li>
+            </ol>
+            <p>For security, the installer is now locked. To re-run it, you must delete the <strong>install.lock</strong> file from the <strong>includes</strong> directory.</p>
+            <a href='admin/index.php' class='btn'>Login to Admin Panel</a>
         ";
         render_page('Installation Complete', $content);
         break;
