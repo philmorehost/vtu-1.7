@@ -491,12 +491,29 @@ function toggleServiceFields(serviceType) {
     const dataFields = document.getElementById('dataFields');
     const productProviderSelect = document.getElementById('productProvider');
 
-    // Hide all optional fields first
+    // Define which services are network-based
+    const networkServices = ['data', 'airtime', 'recharge'];
+
+    // Hide all optional fields by default
+    dataFields.classList.add('hidden');
     networkField.classList.add('hidden');
     providerField.classList.add('hidden');
-    dataFields.classList.add('hidden');
 
-    // Always filter the service providers based on the selected service type
+    if (!serviceType) {
+        return; // Exit if no service type is selected
+    }
+
+    // Show network field for network-based services
+    if (networkServices.includes(serviceType)) {
+        networkField.classList.remove('hidden');
+    }
+
+    // Show data-specific fields
+    if (serviceType === 'data') {
+        dataFields.classList.remove('hidden');
+    }
+
+    // Always filter and potentially show the provider field
     const options = productProviderSelect.options;
     let hasVisibleProvider = false;
     for (let i = 0; i < options.length; i++) {
@@ -505,7 +522,7 @@ function toggleServiceFields(serviceType) {
             continue;
         }
         const optionServiceType = options[i].getAttribute('data-service-type');
-        if (serviceType && optionServiceType === serviceType) {
+        if (optionServiceType === serviceType) {
             options[i].style.display = '';
             hasVisibleProvider = true;
         } else {
@@ -513,14 +530,8 @@ function toggleServiceFields(serviceType) {
         }
     }
 
-    // Show fields based on service type
-    if (serviceType === 'data' || serviceType === 'airtime') {
-        networkField.classList.remove('hidden');
-        providerField.classList.remove('hidden');
-        if (serviceType === 'data') {
-            dataFields.classList.remove('hidden');
-        }
-    } else if (serviceType) {
+    // If there are any providers for this service type, show the dropdown
+    if (hasVisibleProvider) {
         providerField.classList.remove('hidden');
     }
 }
