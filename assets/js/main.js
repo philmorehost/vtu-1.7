@@ -2081,7 +2081,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetDataForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2195,7 +2195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetAirtimeForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2263,7 +2263,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.token) {
                     electricityTokenInput.value = data.token;
                 }
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2365,7 +2365,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetCableTVForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2416,7 +2416,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBettingForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2468,7 +2468,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetExamForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2564,7 +2564,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBulkSMSForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2646,7 +2646,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetGiftCardForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2701,7 +2701,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetRechargeCardForm();
-                fetchTransactions(); // Refresh transactions
+                fetchAllTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -3178,6 +3178,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     // --- API Fetch Functions ---
+
+    function fetchAllTransactions(page = 1, limit = 5, container = null) {
+        if (container === null) {
+            // If no container is specified, refresh both recent and all transactions.
+            if (recentTransactionsContainer) {
+                fetchAllTransactions(1, 5, recentTransactionsContainer);
+            }
+            if (allTransactionsContainer) {
+                fetchAllTransactions(1, 10, allTransactionsContainer);
+            }
+            return;
+        }
+
+        const offset = (page - 1) * limit;
+        fetch(`api/transactions.php?limit=${limit}&offset=${offset}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Fetched transactions data:', data);
+                if (data.error) {
+                    container.innerHTML = `<p class="text-red-500">${data.error}</p>`;
+                    return;
+                }
+                renderAllTransactions(data.transactions, container);
+            })
+            .catch(error => {
+                console.error('Error fetching transactions:', error);
+                if (container) {
+                    container.innerHTML = `<p class="text-red-500">An error occurred while fetching transactions.</p>`;
+                }
+            });
+    }
+
+    function renderAllTransactions(transactions, container) {
+        if (!container) return;
+        container.innerHTML = '';
+        if (transactions.length === 0) {
+            container.innerHTML = '<p class="text-gray-500">No transactions found.</p>';
+            return;
+        }
+
+        transactions.forEach(tx => {
+            const transactionElement = document.createElement('div');
+            transactionElement.className = 'p-4 border-b cursor-pointer hover:bg-gray-50';
+            transactionElement.dataset.transactionId = tx.id;
+            transactionElement.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">${tx.type}</p>
+                        <p class="text-sm text-gray-500">${new Date(tx.created_at).toLocaleString()}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-semibold ${tx.amount > 0 ? 'text-green-500' : 'text-red-500'}">
+                            NGN ${Math.abs(tx.amount).toFixed(2)}
+                        </p>
+                        <p class="text-sm text-gray-500">${tx.status}</p>
+                    </div>
+                </div>
+            `;
+            transactionElement.addEventListener('click', () => {
+                showTransactionDetails(tx.id);
+            });
+            container.appendChild(transactionElement);
+        });
+    }
+
     function fetchUserData() {
         fetch('api/user.php')
             .then(response => {
