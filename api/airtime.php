@@ -15,7 +15,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-$modularGateway = new ModularApiGateway($pdo);
+$modularGateway = new ModularApiGateway($pdo, $userId);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phoneNumber = $_POST['phoneNumber'] ?? null;

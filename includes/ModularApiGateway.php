@@ -8,9 +8,11 @@ require_once(__DIR__ . '/../apis/ApiProviderRegistry.php');
 
 class ModularApiGateway {
     private $pdo;
+    private $userId;
     
-    public function __construct($pdo) {
+    public function __construct($pdo, $userId = null) {
         $this->pdo = $pdo;
+        $this->userId = $userId;
     }
     
     /**
@@ -60,7 +62,8 @@ class ModularApiGateway {
             $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
                 'api_key' => $providerConfig['api_key'],
                 'secret_key' => $providerConfig['secret_key'],
-                'base_url' => $providerConfig['base_url']
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
             ]);
             
             $result = $provider->purchaseAirtime($phoneNumber, $amount, $network);
@@ -101,7 +104,8 @@ class ModularApiGateway {
             $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
                 'api_key' => $providerConfig['api_key'],
                 'secret_key' => $providerConfig['secret_key'],
-                'base_url' => $providerConfig['base_url']
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
             ]);
             
             $result = $provider->purchaseData($phoneNumber, $planCode, $network);
@@ -141,7 +145,8 @@ class ModularApiGateway {
             $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
                 'api_key' => $providerConfig['api_key'],
                 'secret_key' => $providerConfig['secret_key'],
-                'base_url' => $providerConfig['base_url']
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
             ]);
             
             $result = $provider->payCableTV($smartCardNumber, $productCode, $customerId);
@@ -181,7 +186,8 @@ class ModularApiGateway {
             $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
                 'api_key' => $providerConfig['api_key'],
                 'secret_key' => $providerConfig['secret_key'],
-                'base_url' => $providerConfig['base_url']
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
             ]);
             
             $result = $provider->payElectricity($meterNumber, $amount, $discoCode, $meterType);
@@ -222,7 +228,8 @@ class ModularApiGateway {
             $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
                 'api_key' => $providerConfig['api_key'],
                 'secret_key' => $providerConfig['secret_key'],
-                'base_url' => $providerConfig['base_url']
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
             ]);
             
             $result = $provider->sendBulkSms($message, $recipients, $senderId);
