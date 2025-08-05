@@ -8,7 +8,7 @@ require_once('includes/header.php');
 // Fetch stats
 $total_users = $pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 $total_transactions = $pdo->query("SELECT COUNT(*) FROM transactions")->fetchColumn();
-$total_revenue = $pdo->query("SELECT SUM(amount) FROM transactions WHERE amount < 0")->fetchColumn();
+$total_revenue = $pdo->query("SELECT SUM(amount) FROM transactions WHERE amount < 0 AND status = 'Completed'")->fetchColumn();
 
 // Fetch recent transactions
 $stmt = $pdo->query("SELECT t.*, u.name as user_name FROM transactions t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC LIMIT 5");

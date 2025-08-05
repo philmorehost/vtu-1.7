@@ -105,6 +105,10 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                         <i class="fas fa-exchange-alt w-5 h-5 mr-0 md:mr-3 text-yellow-400 group-hover:text-yellow-300"></i>
                         <span class="font-medium" x-show="!sidebarCollapsed">Transactions</span>
                     </a>
+                    <a href="/admin/transaction_summary.php" class="nav-item flex items-center py-3 px-2 rounded-lg transition-all duration-200 hover:bg-gray-700 group">
+                        <i class="fas fa-chart-pie w-5 h-5 mr-0 md:mr-3 text-indigo-400 group-hover:text-indigo-300"></i>
+                        <span class="font-medium" x-show="!sidebarCollapsed">Transaction Summary</span>
+                    </a>
                     <a href="/admin/payment_orders.php" class="nav-item flex items-center py-3 px-2 rounded-lg transition-all duration-200 hover:bg-gray-700 group">
                         <i class="fas fa-credit-card w-5 h-5 mr-0 md:mr-3 text-purple-400 group-hover:text-purple-300"></i>
                         <span class="font-medium" x-show="!sidebarCollapsed">Payment Orders</span>
