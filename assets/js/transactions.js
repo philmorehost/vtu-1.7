@@ -13,7 +13,18 @@ try {
         let currentPage = 1;
         const limit = 10;
 
-        function fetchTransactions(page = 1, limit = 5, container) {
+        function fetchTransactions(page = 1, limit = 5, container = null) {
+            if (container === null) {
+                // If no container is specified, refresh both recent and all transactions.
+                if (recentTransactionsContainer) {
+                    fetchTransactions(1, 5, recentTransactionsContainer);
+                }
+                if (allTransactionsContainer) {
+                    fetchTransactions(1, 10, allTransactionsContainer);
+                }
+                return;
+            }
+
             const offset = (page - 1) * limit;
             fetch(`api/transactions.php?limit=${limit}&offset=${offset}`)
                 .then(response => response.json())
