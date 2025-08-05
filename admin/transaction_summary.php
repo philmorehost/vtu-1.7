@@ -62,10 +62,10 @@ $total_funding = $pdo->query("SELECT SUM(amount) FROM transactions WHERE type = 
                 <?php foreach ($summary as $service => $stats): ?>
                     <tr class="border-b">
                         <td class="py-2 px-4"><?= htmlspecialchars($service) ?></td>
-                        <td class="py-2 px-4"><?= htmlspecialchars($stats['total_transactions']) ?></td>
-                        <td class="py-2 px-4 text-green-500"><?= htmlspecialchars($stats['completed']) ?></td>
-                        <td class="py-2 px-4 text-red-500"><?= htmlspecialchars($stats['failed']) ?></td>
-                        <td class="py-2 px-4 text-yellow-500"><?= htmlspecialchars($stats['pending']) ?></td>
+                        <td class="py-2 px-4"><?= htmlspecialchars($stats['total_transactions'] ?? 0) ?></td>
+                        <td class="py-2 px-4 text-green-500"><?= htmlspecialchars($stats['completed'] ?? 0) ?></td>
+                        <td class="py-2 px-4 text-red-500"><?= htmlspecialchars($stats['failed'] ?? 0) ?></td>
+                        <td class="py-2 px-4 text-yellow-500"><?= htmlspecialchars($stats['pending'] ?? 0) ?></td>
                         <td class="py-2 px-4">₦<?= htmlspecialchars(number_format(abs($stats['total_revenue'] ?? 0), 2)) ?></td>
                     </tr>
                 <?php endforeach; ?>
