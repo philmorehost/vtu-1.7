@@ -147,6 +147,10 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                                 <i class="fas fa-route w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
                                 <span x-show="!sidebarCollapsed">Legacy Gateway</span>
                             </a>
+                            <a href="/admin/apimanager/modular_routing.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
+                                <i class="fas fa-sitemap w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Modular Routing</span>
+                            </a>
                             <a href="/admin/service_providers.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
                                 <i class="fas fa-handshake w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
                                 <span x-show="!sidebarCollapsed">Service Providers</span>
