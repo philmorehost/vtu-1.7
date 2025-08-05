@@ -34,10 +34,10 @@ if (!isset($_SESSION['user_id'])) {
 
     <!-- Main Application Container -->
     <div id="app-container" class="flex-grow flex flex-col items-center justify-center">
-        <?php include 'pages/dashboard.php'; ?>
-        <?php include 'pages/fund_wallet.php'; ?>
-        <?php include 'pages/service.php'; ?>
-        <?php include 'pages/profile.php'; ?>
+        <?php include __DIR__ . '/pages/dashboard.php'; ?>
+        <?php include __DIR__ . '/pages/fund_wallet.php'; ?>
+        <?php include __DIR__ . '/pages/service.php'; ?>
+        <?php include __DIR__ . '/pages/profile.php'; ?>
 
         <!-- Dashboard Page -->
         <div id="dashboard-page" class="page flex-grow p-4 pb-20 md:p-8 max-w-screen-md mx-auto w-full">
