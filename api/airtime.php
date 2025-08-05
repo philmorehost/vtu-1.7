@@ -5,6 +5,7 @@
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
 require_once('../includes/db.php');
+require_once('../includes/helpers.php');
 require_once('../includes/ModularApiGateway.php');
 require_once('../includes/AdminControls.php');
 
@@ -55,13 +56,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Detect network if not provided
         if (!$network) {
-            $response = file_get_contents("http://localhost/api/services.php?action=detect_network&phone=" . urlencode($phoneNumber));
-            $detectionResult = json_decode($response, true);
-            $networkName = null;
-            
-            if ($detectionResult && $detectionResult['success']) {
-                $networkName = $detectionResult['network']['name'];
-                $network = $networkName;
+            $networkData = detectNetworkByPhone($phoneNumber, $pdo);
+            if ($networkData) {
+                $network = $networkData['name'];
             }
         }
 
