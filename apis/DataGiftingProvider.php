@@ -419,4 +419,34 @@ class DataGiftingProvider extends BaseApiProvider {
     public function purchaseGiftCard($cardType, $amount, $quantity = 1) {
         return $this->formatResponse(false, 'Gift Card purchase is not yet implemented for this provider.');
     }
+
+    /**
+     * @override
+     */
+    public function verifyTransaction($transactionId) {
+        $this->validateConfig();
+
+        $data = [
+            'api_key' => $this->apiKey,
+            'ref' => $transactionId,
+        ];
+
+        try {
+            $result = $this->makeRequest('api/verify.php', $data, 'POST');
+
+            if ($result['http_code'] === 200) {
+                $response = $result['response'];
+                if (isset($response['status']) && $response['status'] === 'success') {
+                    // Assuming the status is in a 'status' field in the response data
+                    return $this->formatResponse(true, 'Transaction status retrieved successfully', ['status' => $response['status']]);
+                } else {
+                    return $this->formatResponse(false, $response['desc'] ?? 'Could not verify transaction', ['status' => 'Unknown']);
+                }
+            } else {
+                return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code'], ['status' => 'Unknown']);
+            }
+        } catch (Exception $e) {
+            return $this->formatResponse(false, 'Error: ' . $e->getMessage(), ['status' => 'Unknown']);
+        }
+    }
 }
