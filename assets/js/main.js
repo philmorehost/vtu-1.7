@@ -1335,10 +1335,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.className = 'flex justify-between items-center py-3 px-4 hover:bg-gray-50 cursor-pointer';
             li.dataset.transactionId = txn.id;
+            const statusHtml = `<span class="text-xs font-semibold ${txn.status === 'Completed' ? 'text-green-600' : (txn.status === 'Failed' ? 'text-red-600' : 'text-yellow-600')}">${txn.status}</span>`;
             li.innerHTML = `
                 <div>
                     <p class="font-medium text-gray-800">${txn.description}</p>
-                    <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()}</p>
+                    <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()} - ${statusHtml}</p>
                 </div>
                 <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
                     ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
@@ -1374,10 +1375,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'px-4', 'hover:bg-gray-50', 'cursor-pointer');
             li.dataset.transactionId = txn.id;
+
+            let statusHtml = `<span class="font-semibold ${txn.status === 'Completed' ? 'text-green-600' : (txn.status === 'Failed' ? 'text-red-600' : 'text-yellow-600')}">${txn.status}</span>`;
+            if (txn.status === 'Pending') {
+                statusHtml += ` <button class="requery-btn text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" data-id="${txn.id}">Requery</button>`;
+            }
+
             li.innerHTML = `
                 <div>
                     <p class="font-medium text-gray-800">${txn.description}</p>
                     <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()}</p>
+                    <p class="text-sm">${statusHtml}</p>
                 </div>
                 <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
                     ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
@@ -1393,8 +1401,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
         document.querySelectorAll('#transactions-list li').forEach(item => {
             item.addEventListener('click', (e) => {
+                // Do not open details modal if requery button was clicked
+                if (e.target.classList.contains('requery-btn')) {
+                    return;
+                }
                 const txnId = e.currentTarget.dataset.transactionId;
                 showTransactionDetailsModal(txnId);
+            });
+        });
+
+        document.querySelectorAll('.requery-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const txnId = e.currentTarget.dataset.id;
+                e.currentTarget.textContent = 'Requerying...';
+                e.currentTarget.disabled = true;
+
+                fetch('api/requery.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `transaction_id=${txnId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Refresh transaction list to show new status
+                        fetchTransactions();
+                    } else {
+                        alert('Error: ' + data.message);
+                        e.currentTarget.textContent = 'Requery';
+                        e.currentTarget.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Requery error:', error);
+                    alert('An error occurred while requerying.');
+                    e.currentTarget.textContent = 'Requery';
+                    e.currentTarget.disabled = false;
+                });
             });
         });
     }
@@ -2004,6 +2048,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dataVendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = dataVendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const recipients = getDataRecipients();
         const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
         const dataPlanValue = dataPlanSelect.value;
@@ -2013,27 +2060,34 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-                const formData = new FormData();
-                formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-                formData.append('plan', dataPlanValue);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/data.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetDataForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
+        formData.append('plan', dataPlanValue);
+
+        fetch('api/data.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetDataForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2103,6 +2157,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     airtimeVendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = airtimeVendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const recipients = getAirtimeRecipients();
         const selectedNetwork = airtimeNetworkOverrideToggle.checked ? airtimeManualNetworkSelect.value : airtimeDetectedNetworkDisplay.textContent;
         const amountPerRecipient = parseFloat(airtimeAmountInput.value);
@@ -2112,27 +2169,34 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-                const formData = new FormData();
-                formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-                formData.append('amount', amountPerRecipient);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/airtime.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetAirtimeForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
+        formData.append('amount', amountPerRecipient);
+
+        fetch('api/airtime.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetAirtimeForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2151,6 +2215,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     electricityVendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = electricityVendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const serviceType = document.querySelector('input[name="electricity-type"]:checked').value;
         const meterNumber = meterNumberInput.value;
         const disco = discoProviderSelect.value;
@@ -2161,31 +2228,38 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-                const formData = new FormData();
-                formData.append('serviceType', serviceType);
-                formData.append('meterNumber', meterNumber);
-                formData.append('disco', disco);
-                formData.append('amount', amount);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/electricity.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        if (data.token) {
-                            electricityTokenInput.value = data.token;
-                        }
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('serviceType', serviceType);
+        formData.append('meterNumber', meterNumber);
+        formData.append('disco', disco);
+        formData.append('amount', amount);
+
+        fetch('api/electricity.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                if (data.token) {
+                    electricityTokenInput.value = data.token;
+                }
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2237,6 +2311,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     cabletvVendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = cabletvVendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         if (!isSmartCardVerified) {
             alert('Please verify your smart card first.');
             return;
@@ -2251,33 +2328,43 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-                const formData = new FormData();
-                formData.append('provider', provider);
-                formData.append('smartCardNumber', smartCardNumber);
-                formData.append('plan', planValue);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/cabletv.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetCableTVForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('provider', provider);
+        formData.append('smartCardNumber', smartCardNumber);
+        formData.append('plan', planValue);
+
+        fetch('api/cabletv.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetCableTVForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
     bettingFundingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = bettingFundingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const platform = bettingPlatformSelect.value;
         const userId = bettingUserIdInput.value;
         const amount = parseFloat(bettingAmountInput.value);
@@ -2287,28 +2374,35 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-                const formData = new FormData();
-                formData.append('platform', platform);
-                formData.append('userId', userId);
-                formData.append('amount', amount);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/betting.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetBettingForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('platform', platform);
+        formData.append('userId', userId);
+        formData.append('amount', amount);
+
+        fetch('api/betting.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetBettingForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2317,35 +2411,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     examVendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = examVendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const examType = examTypeSelect.value;
         const quantity = parseInt(examQuantityInput.value);
 
-                if (!examType || !quantity || quantity <= 0) {
+        if (!examType || !quantity || quantity <= 0) {
             alert('Please select an exam type and quantity.');
             return;
         }
 
-                const formData = new FormData();
-                formData.append('examType', examType);
-                formData.append('quantity', quantity);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/exam.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetExamForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('examType', examType);
+        formData.append('quantity', quantity);
+
+        fetch('api/exam.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetExamForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2396,37 +2500,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     bulksmsSendingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = bulksmsSendingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const senderId = smsSenderIdSelect.value;
         const recipients = getRecipientNumbers();
         const message = smsMessageTextarea.value;
 
-                if (!senderId || recipients.length === 0 || !message) {
+        if (!senderId || recipients.length === 0 || !message) {
             alert('Please fill in all details correctly.');
             return;
         }
 
-                const formData = new FormData();
-                formData.append('senderId', senderId);
-                formData.append('recipients', JSON.stringify(recipients));
-                formData.append('message', message);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/bulksms.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetBulkSMSForm();
-                        fetchTransactions(); // Refresh transactions
+        const formData = new FormData();
+        formData.append('senderId', senderId);
+        formData.append('recipients', JSON.stringify(recipients));
+        formData.append('message', message);
+
+        fetch('api/bulksms.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetBulkSMSForm();
+                fetchTransactions(); // Refresh transactions
             } else {
-                        alert(`Error: ${data.message}`);
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2457,43 +2571,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     giftcardForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = giftcardForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const cardType = giftcardTypeSelect.value;
         const denomination = parseFloat(giftcardDenominationInput.value);
 
-                if (!cardType || !denomination || denomination <= 0) {
+        if (!cardType || !denomination || denomination <= 0) {
             alert('Please fill in all details correctly.');
             return;
         }
 
-                const formData = new FormData();
-                formData.append('cardType', cardType);
-                formData.append('denomination', denomination);
-                formData.append('mode', currentGiftCardMode);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                if (currentGiftCardMode === 'sell') {
-                    formData.append('code', giftcardCodeInput.value);
+        const formData = new FormData();
+        formData.append('cardType', cardType);
+        formData.append('denomination', denomination);
+        formData.append('mode', currentGiftCardMode);
+
+        if (currentGiftCardMode === 'sell') {
+            formData.append('code', giftcardCodeInput.value);
             if (giftcardImageInput.files.length > 0) {
-                        formData.append('image', giftcardImageInput.files[0]);
+                formData.append('image', giftcardImageInput.files[0]);
             }
         }
 
-                fetch('api/giftcard.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetGiftCardForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        fetch('api/giftcard.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetGiftCardForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
@@ -2503,37 +2627,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     rechargeCardPrintingForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const submitButton = rechargeCardPrintingForm.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+
         const network = rechargeCardNetworkSelect.value;
         const amount = rechargeCardAmountSelect.value;
         const quantity = parseInt(rechargeCardQuantityInput.value);
 
-                if (!network || !amount || !quantity || quantity <= 0) {
+        if (!network || !amount || !quantity || quantity <= 0) {
             alert('Please fill in all details correctly.');
             return;
         }
 
-                const formData = new FormData();
-                formData.append('network', network);
-                formData.append('amount', amount);
-                formData.append('quantity', quantity);
+        submitButton.innerHTML = 'Processing...';
+        submitButton.disabled = true;
 
-                fetch('api/recharge-card.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetRechargeCardForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        const formData = new FormData();
+        formData.append('network', network);
+        formData.append('amount', amount);
+        formData.append('quantity', quantity);
+
+        fetch('api/recharge-card.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                resetRechargeCardForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        })
+        .finally(() => {
+            submitButton.innerHTML = originalButtonText;
+            submitButton.disabled = false;
         });
     });
 
