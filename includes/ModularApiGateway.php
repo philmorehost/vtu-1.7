@@ -18,28 +18,25 @@ class ModularApiGateway {
     /**
      * Get the best available API provider for a service
      */
-    public function getProvider($serviceType, $networkId = null) {
+    public function getProvider($serviceProductId) {
         try {
             $sql = "
-                SELECT ap.*, apr.service_type, apr.network_id, apr.priority,
-                       n.name as network_name, n.code as network_code
-                FROM api_provider_routes apr
-                JOIN api_providers ap ON apr.api_provider_id = ap.id 
-                LEFT JOIN networks n ON apr.network_id = n.id
-                WHERE apr.service_type = ? 
-                AND apr.status = 'active' 
+                SELECT ap.*
+                FROM modular_api_routes mar
+                JOIN api_providers ap ON mar.api_provider_id = ap.id
+                WHERE mar.service_product_id = ?
+                AND mar.status = 'active'
                 AND ap.status = 'active'
-                AND (apr.network_id = ? OR apr.network_id IS NULL)
-                ORDER BY apr.priority DESC, apr.id ASC 
+                ORDER BY mar.priority DESC, mar.id ASC
                 LIMIT 1
             ";
             
             $stmt = $this->pdo->prepare($sql);
-            $stmt->execute([$serviceType, $networkId]);
+            $stmt->execute([$serviceProductId]);
             
-            $providers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("Providers found for service type '{$serviceType}': " . print_r($providers, true));
-            return $providers[0] ?? null;
+            $provider = $stmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Provider found for service product ID '{$serviceProductId}': " . print_r($provider, true));
+            return $provider;
         } catch (Exception $e) {
             error_log("API Gateway Provider Error: " . $e->getMessage());
             return null;
@@ -91,14 +88,13 @@ class ModularApiGateway {
     /**
      * Process data purchase using module
      */
-    public function purchaseData($phoneNumber, $planCode, $network = null) {
-        $networkId = $this->getNetworkId($network);
-        $providerConfig = $this->getProvider('data', $networkId);
+    public function purchaseData($productId, $phoneNumber) {
+        $providerConfig = $this->getProvider($productId);
         
         if (!$providerConfig) {
             return [
                 'success' => false,
-                'message' => 'No API provider available for data service'
+                'message' => 'No API provider available for this data plan.'
             ];
         }
         
@@ -110,13 +106,17 @@ class ModularApiGateway {
                 'user_id' => $this->userId
             ]);
             
-            $result = $provider->purchaseData($phoneNumber, $planCode, $network);
+            // We need to get the plan code from the product ID
+            $stmt = $this->pdo->prepare("SELECT plan_code FROM service_products WHERE id = ?");
+            $stmt->execute([$productId]);
+            $planCode = $stmt->fetchColumn();
+
+            $result = $provider->purchaseData($phoneNumber, $planCode, null);
             
             // Log transaction
             $this->logTransaction('data', $providerConfig['id'], $result, [
                 'phone_number' => $phoneNumber,
-                'plan_code' => $planCode,
-                'network' => $network
+                'product_id' => $productId,
             ]);
             
             return $result;

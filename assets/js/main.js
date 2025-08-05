@@ -1878,9 +1878,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const recipients = getDataRecipients();
         const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
-        const dataPlanValue = dataPlanSelect.value;
+        const productId = dataPlanSelect.value;
 
-        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !dataPlanValue) {
+        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !productId) {
             alert('Please fill in all details correctly.');
             return;
         }
@@ -1890,7 +1890,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-        formData.append('plan', dataPlanValue);
+        formData.append('product_id', productId);
 
         fetch('api/data_modular.php', {
             method: 'POST',

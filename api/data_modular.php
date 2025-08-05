@@ -18,13 +18,12 @@ $modularGateway = new ModularApiGateway($pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phoneNumber = $_POST['phoneNumber'] ?? null;
-    $planCode = $_POST['plan'] ?? null;
-    $network = $_POST['network'] ?? null;
+    $productId = $_POST['product_id'] ?? null;
     $source = $_POST['source'] ?? 'Website';
     $batchId = ($source === 'API') ? uniqid('batch_') : null;
 
-    if (!$phoneNumber || !$planCode) {
-        echo json_encode(['success' => false, 'message' => 'Phone number and plan are required.']);
+    if (!$phoneNumber || !$productId) {
+        echo json_encode(['success' => false, 'message' => 'Phone number and product are required.']);
         exit();
     }
 
@@ -56,9 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             SELECT sp.*, n.name as network_name, n.code as network_code 
             FROM service_products sp 
             LEFT JOIN networks n ON sp.network_id = n.id 
-            WHERE sp.plan_code = ? AND sp.service_type = 'data' AND sp.status = 'active'
+            WHERE sp.id = ? AND sp.service_type = 'data' AND sp.status = 'active'
         ");
-        $stmt->execute([$planCode]);
+        $stmt->execute([$productId]);
         $dataPlan = $stmt->fetch();
 
         if (!$dataPlan) {
@@ -133,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $transactionId = $pdo->lastInsertId();
 
         // Use modular API gateway to process data purchase
-        $apiResponse = $modularGateway->purchaseData($phoneNumber, $planCode, $network);
+        $apiResponse = $modularGateway->purchaseData($productId, $phoneNumber);
 
         // Update transaction based on API response
         $finalStatus = $apiResponse['success'] ? 'Completed' : 'Failed';
