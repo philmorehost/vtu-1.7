@@ -93,10 +93,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cost = $amount * (1 - ($discountPercentage / 100));
 
         // Check user balance
-        $stmt = $pdo->prepare("SELECT balance FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT wallet_balance FROM users WHERE id = ?");
         $stmt->execute([$userId]);
         $user = $stmt->fetch();
-        $balanceBefore = $user['balance'];
+        $balanceBefore = $user['wallet_balance'];
 
         if ($balanceBefore < $cost) {
             echo json_encode(['success' => false, 'message' => 'Insufficient balance.']);
@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Deduct amount from wallet
         $balanceAfter = $balanceBefore - $cost;
-        $stmt = $pdo->prepare("UPDATE users SET balance = balance - ? WHERE id = ?");
+        $stmt = $pdo->prepare("UPDATE users SET wallet_balance = wallet_balance - ? WHERE id = ?");
         $success = $stmt->execute([$cost, $userId]);
 
         if (!$success) {
@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // If transaction failed, refund the amount
         if ($finalStatus === 'Failed') {
-            $stmt = $pdo->prepare("UPDATE users SET balance = balance + ? WHERE id = ?");
+            $stmt = $pdo->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?");
             $stmt->execute([$cost, $userId]);
             
             // Update balance in transaction record
