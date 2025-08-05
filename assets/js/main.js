@@ -720,7 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateDataRecipientCountAndCost() {
+    async function updateDataRecipientCountAndCost() {
         const recipients = getDataRecipients();
         dataRecipientCountDisplay.textContent = recipients.length;
 
@@ -729,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (dataBulkPurchaseToggle.checked) {
             if (!dataNetworkOverrideToggle.checked) {
-                const uniqueNetworks = getUniqueNetworks(recipients);
+                const uniqueNetworks = await getUniqueNetworks(recipients);
                 if (uniqueNetworks.length === 1) {
                     currentDetectedNetwork = uniqueNetworks[0];
                     dataDetectedNetworkDisplay.textContent = currentDetectedNetwork;
@@ -754,7 +754,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { // Single purchase mode
             if (!dataNetworkOverrideToggle.checked) {
                 const singleNumber = dataPhoneNumberInput.value.trim();
-                const detected = detectNetwork(singleNumber);
+                const detected = await detectNetworkFromPhone(singleNumber);
                 dataDetectedNetworkDisplay.textContent = detected;
                 if (detected !== 'N/A' && detected !== 'Unknown') {
                     loadDataPlans(detected);
@@ -812,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateAirtimeRecipientCountAndCost() {
+    async function updateAirtimeRecipientCountAndCost() {
         const recipients = getAirtimeRecipients();
         airtimeRecipientCountDisplay.textContent = recipients.length;
 
@@ -821,7 +821,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (airtimeBulkPurchaseToggle.checked) {
             if (!airtimeNetworkOverrideToggle.checked) {
-                const uniqueNetworks = getUniqueNetworks(recipients);
+                const uniqueNetworks = await getUniqueNetworks(recipients);
                 if (uniqueNetworks.length === 1) {
                     currentDetectedNetwork = uniqueNetworks[0];
                     airtimeDetectedNetworkDisplay.textContent = currentDetectedNetwork;
@@ -842,7 +842,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else { // Single purchase mode
             if (!airtimeNetworkOverrideToggle.checked) {
                 const singleNumber = airtimePhoneNumberInput.value.trim();
-                const detected = detectNetwork(singleNumber);
+                const detected = await detectNetworkFromPhone(singleNumber);
                 airtimeDetectedNetworkDisplay.textContent = detected;
                 selectedNetworkForCost = detected;
             } else {
@@ -1955,36 +1955,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         }
-        updateDataRecipientCountAndCost();
+        await updateDataRecipientCountAndCost();
     });
 
-    dataPhoneNumbersBulkInput.addEventListener('input', () => {
-        updateDataRecipientCountAndCost();
+    dataPhoneNumbersBulkInput.addEventListener('input', async () => {
+        await updateDataRecipientCountAndCost();
     });
 
-    dataNetworkOverrideToggle.addEventListener('change', () => {
+    dataNetworkOverrideToggle.addEventListener('change', async () => {
         if (dataNetworkOverrideToggle.checked) {
             dataManualNetworkSelection.style.display = 'block';
             dataDetectedNetworkDisplay.textContent = 'Manual';
             dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         } else {
             dataManualNetworkSelection.style.display = 'none';
-            updateDataRecipientCountAndCost();
+            await updateDataRecipientCountAndCost();
         }
-        updateDataRecipientCountAndCost();
+        await updateDataRecipientCountAndCost();
     });
 
-    dataManualNetworkSelect.addEventListener('change', () => {
+    dataManualNetworkSelect.addEventListener('change', async () => {
         const selectedNetwork = dataManualNetworkSelect.value;
         if (selectedNetwork) {
             loadDataPlans(selectedNetwork);
         } else {
             dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         }
-        updateDataRecipientCountAndCost();
+        await updateDataRecipientCountAndCost();
     });
 
-    dataPlanSelect.addEventListener('change', updateDataRecipientCountAndCost);
+    dataPlanSelect.addEventListener('change', async () => {
+        await updateDataRecipientCountAndCost()
+    });
 
     dataScheduleToggle.addEventListener('change', () => {
         if (dataScheduleToggle.checked) {
@@ -2063,25 +2065,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 airtimeDetectedNetworkDisplay.textContent = detected;
             }
         }
-        updateAirtimeRecipientCountAndCost();
+        await updateAirtimeRecipientCountAndCost();
     });
 
-    airtimePhoneNumbersBulkInput.addEventListener('input', () => {
-        updateAirtimeRecipientCountAndCost();
+    airtimePhoneNumbersBulkInput.addEventListener('input', async () => {
+        await updateAirtimeRecipientCountAndCost();
     });
 
-    airtimeNetworkOverrideToggle.addEventListener('change', () => {
+    airtimeNetworkOverrideToggle.addEventListener('change', async () => {
         if (airtimeNetworkOverrideToggle.checked) {
             airtimeManualNetworkSelection.style.display = 'block';
             airtimeDetectedNetworkDisplay.textContent = 'Manual';
         } else {
             airtimeManualNetworkSelection.style.display = 'none';
-            updateAirtimeRecipientCountAndCost();
+            await updateAirtimeRecipientCountAndCost();
         }
-        updateAirtimeRecipientCountAndCost();
+        await updateAirtimeRecipientCountAndCost();
     });
 
-    airtimeAmountInput.addEventListener('input', updateAirtimeRecipientCountAndCost);
+    airtimeAmountInput.addEventListener('input', async () => {
+        await updateAirtimeRecipientCountAndCost()
+    });
 
     airtimeScheduleToggle.addEventListener('change', () => {
         if (airtimeScheduleToggle.checked) {
