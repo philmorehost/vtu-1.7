@@ -30,6 +30,11 @@ class DataGiftingProvider extends BaseApiProvider {
         return ['api_key', 'user_id'];
     }
 
+    public function __construct($config = []) {
+        parent::__construct($config);
+        $this->baseUrl = $this->getDefaultBaseUrl();
+    }
+
     public function setConfig(array $config) {
         $this->config = $config;
         $this->apiKey = $config['api_key'] ?? null;
