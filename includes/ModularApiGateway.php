@@ -255,7 +255,7 @@ class ModularApiGateway {
     /**
      * Get network ID by name
      */
-    private function getNetworkId($networkName) {
+    public function getNetworkId($networkName) {
         if (!$networkName) return null;
         
         try {
