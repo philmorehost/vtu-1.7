@@ -156,22 +156,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $apiResponse = $modularGateway->purchaseAirtime($phoneNumber, $amount, $network);
 
         // Update transaction based on API response
-        $finalStatus = $apiResponse['success'] ? 'Completed' : 'Failed';
         $responseMessage = $apiResponse['message'];
+        if ($apiResponse['success']) {
+            $finalStatus = 'Completed';
+        } else {
+            // Treat non-success as Pending to allow for requery
+            $finalStatus = 'Pending';
+        }
 
         // Update transaction status
         $stmt = $pdo->prepare("UPDATE transactions SET status = ? WHERE id = ?");
         $stmt->execute([$finalStatus, $transactionId]);
 
-        // If transaction failed, refund the amount
-        if ($finalStatus === 'Failed') {
-            $stmt = $pdo->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?");
-            $stmt->execute([$cost, $userId]);
-            
-            // Update balance in transaction record
-            $stmt = $pdo->prepare("UPDATE transactions SET balance_after = balance_before WHERE id = ?");
-            $stmt->execute([$transactionId]);
-        }
+        // We do not refund here. The cron job will handle refunds for transactions that are confirmed as Failed.
 
         $pdo->commit();
 
@@ -179,7 +176,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log("Modular Airtime API Response for Transaction $transactionId: " . json_encode($apiResponse));
 
         echo json_encode([
-            'success' => ($finalStatus === 'Completed'),
+            'success' => true, // Always return true to the frontend if the initial request was accepted
             'message' => $responseMessage,
             'transaction_id' => $transactionId,
             'status' => $finalStatus,
