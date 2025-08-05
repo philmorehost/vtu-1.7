@@ -1,4 +1,5 @@
 <?php
+error_log("run_migrations.php script started");
 // A script to run database migrations directly.
 
 require_once('includes/config.php');
