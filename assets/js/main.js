@@ -468,39 +468,31 @@ document.addEventListener('DOMContentLoaded', () => {
             currentServiceName.textContent = "Unknown Service";
         }
 
-        // Load dynamic service data for this service type
-        const serviceOptions = await loadServiceByType(serviceType);
-
         switch (serviceType) {
             case 'data':
                 dataFormSection.classList.remove('hidden');
                 resetDataForm();
-                await populateDataPlans(serviceOptions);
+                loadDataPlans(dataDetectedNetworkDisplay.textContent);
                 break;
             case 'airtime':
                 airtimeFormSection.classList.remove('hidden');
                 resetAirtimeForm();
-                await populateAirtimeNetworks(serviceOptions);
                 break;
             case 'electricity':
                 electricityFormSection.classList.remove('hidden');
                 resetElectricityForm();
-                await populateElectricityProviders(serviceOptions);
                 break;
             case 'cabletv':
                 cabletvFormSection.classList.remove('hidden');
                 resetCableTVForm();
-                await populateCableTVProviders(serviceOptions);
                 break;
             case 'betting':
                 bettingFormSection.classList.remove('hidden');
                 resetBettingForm();
-                await populateBettingProviders(serviceOptions);
                 break;
             case 'exam':
                 examFormSection.classList.remove('hidden');
                 resetExamForm();
-                await populateExamBoards(serviceOptions);
                 break;
             case 'bulksms':
                 bulksmsFormSection.classList.remove('hidden');
@@ -511,12 +503,10 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'giftcard':
                 giftcardFormSection.classList.remove('hidden');
                 resetGiftCardForm();
-                await populateGiftCardProviders(serviceOptions);
                 break;
             case 'recharge-card':
                 rechargeCardFormSection.classList.remove('hidden');
                 resetRechargeCardForm();
-                await populateRechargeCardProviders(serviceOptions);
                 break;
             default:
                 console.error('Unknown service type for form display:', serviceType);
@@ -525,127 +515,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Dynamic Service Population Functions ---
-    async function populateDataPlans(serviceOptions) {
-        if (!dataPlanSelect) return;
-        
-        dataPlanSelect.innerHTML = '<option value="">Select a data plan</option>';
-        
-        if (!serviceOptions || Object.keys(serviceOptions).length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No data plans available';
-            option.disabled = true;
-            dataPlanSelect.appendChild(option);
-            return;
-        }
-
-        // Populate plans grouped by network
-        for (const [networkName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = networkName;
-                
-                plans.forEach(plan => {
-                    const option = document.createElement('option');
-                    option.value = plan.plan_code;
-                    option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
-                    option.dataset.price = plan.price;
-                    option.dataset.network = plan.network_code;
-                    option.dataset.networkId = plan.network_id || '';
-                    optgroup.appendChild(option);
-                });
-                
-                dataPlanSelect.appendChild(optgroup);
-            }
-        }
-    }
-
-    async function populateAirtimeNetworks(serviceOptions) {
-        if (!airtimeManualNetworkSelect) return;
-        
-        airtimeManualNetworkSelect.innerHTML = '<option value="">Select Network</option>';
-        
-        if (!serviceOptions || Object.keys(serviceOptions).length === 0) {
-            const option = document.createElement('option');
-            option.value = '';
-            option.textContent = 'No networks available';
-            option.disabled = true;
-            airtimeManualNetworkSelect.appendChild(option);
-            return;
-        }
-
-        // Add network options
-        for (const [networkName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const plan = plans[0]; // Take first plan to get network info
-                const option = document.createElement('option');
-                option.value = plan.network_code;
-                option.textContent = networkName;
-                option.dataset.discount = plan.discount || 0;
-                airtimeManualNetworkSelect.appendChild(option);
-            }
-        }
-    }
-
-    async function populateElectricityProviders(serviceOptions) {
-        if (!discoProviderSelect) return;
-        
-        discoProviderSelect.innerHTML = '<option value="">Select Electricity Provider</option>';
-        
-        // Add electricity providers based on service options
-        for (const [providerName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const option = document.createElement('option');
-                option.value = plans[0].plan_code;
-                option.textContent = providerName;
-                discoProviderSelect.appendChild(option);
-            }
-        }
-    }
-
-    async function populateCableTVProviders(serviceOptions) {
-        if (!cabletvProviderSelect) return;
-        
-        cabletvProviderSelect.innerHTML = '<option value="">Select Cable TV Provider</option>';
-        
-        // Add cable TV providers
-        for (const [providerName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = providerName;
-                
-                plans.forEach(plan => {
-                    const option = document.createElement('option');
-                    option.value = plan.plan_code;
-                    option.textContent = `${plan.name} - ₦${plan.price}`;
-                    option.dataset.price = plan.price;
-                    optgroup.appendChild(option);
-                });
-                
-                cabletvProviderSelect.appendChild(optgroup);
-            }
-        }
-    }
-
-    async function populateBettingProviders(serviceOptions) {
-        // Implementation for betting providers if needed
-        console.log('Betting providers:', serviceOptions);
-    }
-
-    async function populateExamBoards(serviceOptions) {
-        // Implementation for exam boards if needed
-        console.log('Exam boards:', serviceOptions);
-    }
-
-    async function populateGiftCardProviders(serviceOptions) {
-        // Implementation for gift card providers if needed
-        console.log('Gift card providers:', serviceOptions);
-    }
-
-    async function populateRechargeCardProviders(serviceOptions) {
-        // Implementation for recharge card providers if needed
-        console.log('Recharge card providers:', serviceOptions);
-    }
 
     // --- Network Detection Logic - Now using dynamic API ---
     async function detectNetworkFromPhone(phoneNumber) {
@@ -679,35 +548,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Data Vending Form Logic ---
-    const dataPlans = {
-        'MTN': [
-            { value: 'mtn-1gb-300', text: '1GB for ₦300 (1 Day)', price: 300, data: '1GB', duration: '1 Day' },
-            { value: 'mtn-2gb-500', text: '2GB for ₦500 (7 Days)', price: 500, data: '2GB', duration: '7 Days' },
-            { value: 'mtn-5gb-1000', text: '5GB for ₦1000 (30 Days)', price: 1000, data: '5GB', duration: '30 Days' }
-        ],
-        'Glo': [
-            { value: 'glo-1gb-250', text: '1GB for ₦250 (1 Day)', price: 250, data: '1GB', duration: '1 Day' },
-            { value: 'glo-3gb-700', text: '3GB for ₦700 (14 Days)', price: 700, data: '3GB', duration: '14 Days' },
-            { value: 'glo-10gb-2000', text: '10GB for ₦2000 (30 Days)', price: 2000, data: '10GB', duration: '30 Days' }
-        ],
-        'Airtel': [
-            { value: 'airtel-1.5gb-350', text: '1.5GB for ₦350 (2 Days)', price: 350, data: '1.5GB', duration: '2 Days' },
-            { value: 'airtel-4gb-900', text: '4GB for ₦900 (30 Days)', price: 900, data: '4GB', duration: '30 Days' }
-        ],
-        '9mobile': [
-            { value: '9mobile-750mb-200', text: '750MB for ₦200 (1 Day)', price: 200, data: '750MB', duration: '1 Day' },
-            { value: '9mobile-2.5gb-600', text: '2.5GB for ₦600 (7 Days)', price: 600, data: '2.5GB', duration: '7 Days' }
-        ]
-    };
-
     function loadDataPlans(network) {
         dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
-        (dataPlans[network] || []).forEach(plan => {
-            const option = document.createElement('option');
-            option.value = plan.value;
-            option.textContent = plan.text;
-            dataPlanSelect.appendChild(option);
-        });
+        if (serviceData.data && serviceData.data.networks && serviceData.data.networks[network]) {
+            serviceData.data.networks[network].forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.plan_code;
+                option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
+                option.dataset.price = plan.price;
+                dataPlanSelect.appendChild(option);
+            });
+        }
     }
 
     function getDataRecipients() {
@@ -895,33 +746,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Cable TV Vending Form Logic ---
-    const cabletvPlans = {
-        'dstv': [
-            { value: 'dstv-padi', text: 'Padi (₦2,950)', price: 2950 },
-            { value: 'dstv-yanga', text: 'Yanga (₦4,150)', price: 4150 },
-            { value: 'dstv-confam', text: 'Confam (₦6,200)', price: 6200 }
-        ],
-        'gotv': [
-            { value: 'gotv-smallie', text: 'Smallie (₦1,100)', price: 1100 },
-            { value: 'gotv-jinja', text: 'Jinja (₦2,700)', price: 2700 },
-            { value: 'gotv-max', text: 'Max (₦4,150)', price: 4150 }
-        ],
-        'startimes': [
-            { value: 'startimes-nova', text: 'Nova (₦900)', price: 900 },
-            { value: 'startimes-basic', text: 'Basic (₦1,700)', price: 1700 },
-            { value: 'startimes-classic', text: 'Classic (₦2,500)', price: 2500 }
-        ]
-    };
-
-    function loadCableTvPlans(provider, availablePackages = null) {
+    function loadCableTvPlans(provider) {
         cabletvPlanSelect.innerHTML = '<option value="">Select a plan</option>';
-        const plansToLoad = availablePackages || cabletvPlans[provider] || [];
-        plansToLoad.forEach(plan => {
-            const option = document.createElement('option');
-            option.value = plan.value;
-            option.textContent = plan.text;
-            cabletvPlanSelect.appendChild(option);
-        });
+        if (serviceData.cabletv && serviceData.cabletv.providers && serviceData.cabletv.providers[provider]) {
+            serviceData.cabletv.providers[provider].forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.plan_code;
+                option.textContent = `${plan.name} - ₦${plan.price}`;
+                option.dataset.price = plan.price;
+                cabletvPlanSelect.appendChild(option);
+            });
+        }
     }
 
     function resetCableTVForm() {
@@ -943,16 +778,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Exam Vending Form Logic ---
-    const examPrices = {
-        'waec': 5000,
-        'neco': 4500,
-        'jamb': 3000
-    };
-
     function updateExamTotalCost() {
         const examType = examTypeSelect.value;
         const quantity = parseInt(examQuantityInput.value) || 0;
-        const pricePerPin = examPrices[examType] || 0;
+        let pricePerPin = 0;
+        if (serviceData.exam && serviceData.exam.types && serviceData.exam.types[examType]) {
+            pricePerPin = serviceData.exam.types[examType].price;
+        }
         const total = pricePerPin * quantity;
         examTotalAmountDisplay.textContent = `₦${total.toFixed(2)}`;
     }
@@ -1099,21 +931,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Print Recharge Card Form Logic ---
-    const rechargeCardPrices = {
-        'MTN': { '100': 95, '200': 190, '500': 475, '1000': 950 },
-        'Glo': { '100': 94, '200': 188, '500': 470, '1000': 940 },
-        'Airtel': { '100': 96, '200': 192, '500': 480, '1000': 960 },
-        '9mobile': { '100': 93, '200': 186, '500': 465, '1000': 930 }
-    };
-
     function updateRechargeCardTotalCost() {
         const network = rechargeCardNetworkSelect.value;
         const amount = rechargeCardAmountSelect.value;
         const quantity = parseInt(rechargeCardQuantityInput.value) || 0;
         let costPerCard = 0;
 
-        if (network && amount) {
-            costPerCard = rechargeCardPrices[network]?.[amount] || 0;
+        if (network && amount && serviceData.recharge_card && serviceData.recharge_card.networks && serviceData.recharge_card.networks[network] && serviceData.recharge_card.networks[network][amount]) {
+            costPerCard = serviceData.recharge_card.networks[network][amount].price;
         }
         const total = costPerCard * quantity;
         rechargeCardTotalCostDisplay.textContent = `₦${total.toFixed(2)}`;
@@ -2067,7 +1892,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
         formData.append('plan', dataPlanValue);
 
-        fetch('api/data.php', {
+        fetch('api/data_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2181,7 +2006,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
         formData.append('amount', amountPerRecipient);
 
-        fetch('api/airtime.php', {
+        fetch('api/airtime_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2247,7 +2072,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('disco', disco);
         formData.append('amount', amount);
 
-        fetch('api/electricity.php', {
+        fetch('api/electricity_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2351,7 +2176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('smartCardNumber', smartCardNumber);
         formData.append('plan', planValue);
 
-        fetch('api/cabletv.php', {
+        fetch('api/cabletv_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2402,7 +2227,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('userId', userId);
         formData.append('amount', amount);
 
-        fetch('api/betting.php', {
+        fetch('api/betting_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2454,7 +2279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('examType', examType);
         formData.append('quantity', quantity);
 
-        fetch('api/exam.php', {
+        fetch('api/exam_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2550,7 +2375,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('recipients', JSON.stringify(recipients));
         formData.append('message', message);
 
-        fetch('api/bulksms.php', {
+        fetch('api/bulksms_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2632,7 +2457,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        fetch('api/giftcard.php', {
+        fetch('api/giftcard_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -2687,7 +2512,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('amount', amount);
         formData.append('quantity', quantity);
 
-        fetch('api/recharge-card.php', {
+        fetch('api/rechargecard_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -3179,69 +3004,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API Fetch Functions ---
 
-    function fetchAllTransactions(page = 1, limit = 5, container = null) {
-        if (container === null) {
-            // If no container is specified, refresh both recent and all transactions.
-            if (recentTransactionsContainer) {
-                fetchAllTransactions(1, 5, recentTransactionsContainer);
-            }
-            if (allTransactionsContainer) {
-                fetchAllTransactions(1, 10, allTransactionsContainer);
-            }
-            return;
-        }
-
-        const offset = (page - 1) * limit;
-        fetch(`api/transactions.php?limit=${limit}&offset=${offset}`)
+    function fetchAllTransactions() {
+        return fetch(`api/transactions.php`)
             .then(response => response.json())
             .then(data => {
-                console.log('Fetched transactions data:', data);
                 if (data.error) {
-                    container.innerHTML = `<p class="text-red-500">${data.error}</p>`;
-                    return;
+                    console.error(data.error);
+                    transactions = [];
+                } else {
+                    transactions = data.transactions;
                 }
-                renderAllTransactions(data.transactions, container);
             })
             .catch(error => {
                 console.error('Error fetching transactions:', error);
-                if (container) {
-                    container.innerHTML = `<p class="text-red-500">An error occurred while fetching transactions.</p>`;
-                }
+                transactions = [];
             });
     }
 
-    function renderAllTransactions(transactions, container) {
-        if (!container) return;
-        container.innerHTML = '';
-        if (transactions.length === 0) {
-            container.innerHTML = '<p class="text-gray-500">No transactions found.</p>';
-            return;
-        }
-
-        transactions.forEach(tx => {
-            const transactionElement = document.createElement('div');
-            transactionElement.className = 'p-4 border-b cursor-pointer hover:bg-gray-50';
-            transactionElement.dataset.transactionId = tx.id;
-            transactionElement.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="font-semibold">${tx.type}</p>
-                        <p class="text-sm text-gray-500">${new Date(tx.created_at).toLocaleString()}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-semibold ${tx.amount > 0 ? 'text-green-500' : 'text-red-500'}">
-                            NGN ${Math.abs(tx.amount).toFixed(2)}
-                        </p>
-                        <p class="text-sm text-gray-500">${tx.status}</p>
-                    </div>
-                </div>
-            `;
-            transactionElement.addEventListener('click', () => {
-                showTransactionDetails(tx.id);
-            });
-            container.appendChild(transactionElement);
-        });
-    }
 
     function fetchUserData() {
         fetch('api/user.php')
@@ -3375,6 +3154,9 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchUserData();
     fetchNotifications();
     loadServiceData(); // Load dynamic service data
+    fetchAllTransactions().then(() => {
+        filterTransactionsAndRender();
+    });
     renderPage('dashboard');
     updateUnreadNotificationsDot();
 });

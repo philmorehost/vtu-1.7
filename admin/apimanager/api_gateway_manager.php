@@ -515,6 +515,20 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
+// Show/hide network dropdown based on service type
+const serviceTypeDropdown = document.querySelector('#routeForm [name="service_type"]');
+const networkDropdown = document.querySelector('#routeForm [name="network_id"]').parentElement;
+
+serviceTypeDropdown.addEventListener('change', () => {
+    const selectedService = serviceTypeDropdown.value;
+    const nonNetworkServices = ['exam', 'betting', 'recharge', 'bulksms', 'giftcard', 'cabletv', 'electricity'];
+    if (nonNetworkServices.includes(selectedService)) {
+        networkDropdown.classList.add('hidden');
+    } else {
+        networkDropdown.classList.remove('hidden');
+    }
+});
+
 // Set first tab as active
 document.querySelector('.tab-btn').classList.add('border-blue-500', 'text-blue-600');
 

@@ -120,7 +120,7 @@ abstract class BaseApiProvider {
      * Make HTTP request
      */
     protected function makeRequest($endpoint, $data = [], $method = 'POST', $headers = []) {
-        $url = $this->baseUrl . $endpoint;
+        $url = rtrim($this->baseUrl, '/') . '/' . ltrim($endpoint, '/');
         
         $defaultHeaders = [
             'Content-Type: application/json',
@@ -129,6 +129,7 @@ abstract class BaseApiProvider {
         
         $headers = array_merge($defaultHeaders, $headers, $this->getAuthHeaders());
         
+        error_log("Making request to URL: " . $url);
         $ch = curl_init();
         curl_setopt_array($ch, [
             CURLOPT_URL => $url,

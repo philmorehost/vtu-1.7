@@ -37,7 +37,9 @@ class ModularApiGateway {
             $stmt = $this->pdo->prepare($sql);
             $stmt->execute([$serviceType, $networkId]);
             
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            $providers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("Providers found for service type '{$serviceType}': " . print_r($providers, true));
+            return $providers[0] ?? null;
         } catch (Exception $e) {
             error_log("API Gateway Provider Error: " . $e->getMessage());
             return null;
@@ -252,6 +254,114 @@ class ModularApiGateway {
         }
     }
     
+    /**
+     * Get available exam cards
+     */
+    public function getAvailableExamCards() {
+        $providerConfig = $this->getProvider('exam');
+
+        if (!$providerConfig) {
+            return [
+                'success' => false,
+                'message' => 'No API provider available for exam service'
+            ];
+        }
+
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
+            ]);
+
+            $result = $provider->getAvailableExamCards();
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Get Exam Cards Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Service temporarily unavailable: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Process exam card purchase using module
+     */
+    public function purchaseExamCard($examTypeId, $quantity) {
+        $providerConfig = $this->getProvider('exam');
+
+        if (!$providerConfig) {
+            return [
+                'success' => false,
+                'message' => 'No API provider available for exam service'
+            ];
+        }
+
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
+            ]);
+
+            $result = $provider->purchaseExamPin($examTypeId, $quantity);
+
+            // Log transaction
+            $this->logTransaction('exam', $providerConfig['id'], $result, [
+                'exam_type_id' => $examTypeId,
+                'quantity' => $quantity
+            ]);
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Exam Card Purchase Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Service temporarily unavailable: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Get account info
+     */
+    public function getAccountInfo() {
+        $providerConfig = $this->getProvider('exam');
+
+        if (!$providerConfig) {
+            return [
+                'success' => false,
+                'message' => 'No API provider available for this service'
+            ];
+        }
+
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'base_url' => $providerConfig['base_url'],
+                'user_id' => $this->userId
+            ]);
+
+            $result = $provider->getAccountInfo();
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Get Account Info Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Service temporarily unavailable: ' . $e->getMessage()
+            ];
+        }
+    }
+
     /**
      * Get network ID by name
      */
