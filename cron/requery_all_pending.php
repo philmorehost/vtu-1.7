@@ -54,6 +54,11 @@ try {
                 'user_id' => $userId
             ]);
 
+            if (!method_exists($provider, 'verifyTransaction') || strpos((new ReflectionMethod(get_class($provider), 'verifyTransaction'))->getDocComment(), '@override') === false) {
+                echo "    - Skipping: Transaction verification is not implemented for provider '{$providerConfig['provider_module']}'.\n";
+                continue;
+            }
+
             $verificationResult = $provider->verifyTransaction($transactionId);
 
             // 4. Update status

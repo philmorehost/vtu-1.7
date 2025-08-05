@@ -113,7 +113,7 @@ abstract class BaseApiProvider {
      * Verify transaction status
      */
     public function verifyTransaction($transactionId) {
-        throw new Exception('Transaction verification not supported by this provider');
+        throw new Exception('Transaction verification is not implemented for this provider.');
     }
     
     /**

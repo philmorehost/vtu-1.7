@@ -2078,7 +2078,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetDataForm();
                 fetchTransactions(); // Refresh transactions
@@ -2192,7 +2192,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetAirtimeForm();
                 fetchTransactions(); // Refresh transactions
@@ -2258,7 +2258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 if (data.token) {
                     electricityTokenInput.value = data.token;
@@ -2362,7 +2362,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetCableTVForm();
                 fetchTransactions(); // Refresh transactions
@@ -2413,7 +2413,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBettingForm();
                 fetchTransactions(); // Refresh transactions
@@ -2465,7 +2465,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetExamForm();
                 fetchTransactions(); // Refresh transactions
@@ -2561,7 +2561,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBulkSMSForm();
                 fetchTransactions(); // Refresh transactions
@@ -2643,7 +2643,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetGiftCardForm();
                 fetchTransactions(); // Refresh transactions
@@ -2698,7 +2698,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (data.success) {
+            if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetRechargeCardForm();
                 fetchTransactions(); // Refresh transactions
