@@ -437,8 +437,15 @@ class DataGiftingProvider extends BaseApiProvider {
             if ($result['http_code'] === 200) {
                 $response = $result['response'];
                 if (isset($response['status']) && $response['status'] === 'success') {
-                    // The cron job expects the status in the 'data' array.
-                    return $this->formatResponse(true, 'Transaction status retrieved successfully', ['status' => $response['response_desc'] ?? 'Unknown']);
+                    $rawStatus = strtolower($response['response_desc'] ?? 'pending');
+                    $normalizedStatus = 'Pending';
+                    if (strpos($rawStatus, 'successful') !== false || strpos($rawStatus, 'completed') !== false) {
+                        $normalizedStatus = 'Completed';
+                    } elseif (strpos($rawStatus, 'failed') !== false || strpos($rawStatus, 'reversed') !== false) {
+                        $normalizedStatus = 'Failed';
+                    }
+
+                    return $this->formatResponse(true, 'Transaction status retrieved successfully', ['status' => $normalizedStatus]);
                 } else {
                     return $this->formatResponse(false, $response['desc'] ?? 'Could not verify transaction', ['status' => 'Unknown']);
                 }
