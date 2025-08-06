@@ -821,12 +821,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Exam Vending Form Logic ---
     function updateExamTotalCost() {
-        const examType = examTypeSelect.value;
+        const examType = examTypeSelect.value; // This is the plan_code
         const quantity = parseInt(examQuantityInput.value) || 0;
         let pricePerPin = 0;
-        if (serviceData.exam && serviceData.exam.types && serviceData.exam.types[examType]) {
-            pricePerPin = serviceData.exam.types[examType].price;
+
+        if (serviceData.exam && serviceData.exam.networks && serviceData.exam.networks['All Networks']) {
+            const selectedExam = serviceData.exam.networks['All Networks'].find(exam => exam.plan_code === examType);
+            if (selectedExam) {
+                pricePerPin = parseFloat(selectedExam.price);
+            }
         }
+
         const total = pricePerPin * quantity;
         examTotalAmountDisplay.textContent = `₦${total.toFixed(2)}`;
     }
