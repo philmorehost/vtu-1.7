@@ -3107,24 +3107,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API Fetch Functions ---
 
-    function fetchAllTransactions() {
-        return fetch(`api/transactions.php`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    console.error(data.error);
-                    transactions = [];
-                } else {
-                    transactions = data.transactions;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching transactions:', error);
+function fetchTransactions() {
+    return fetch(`api/transactions.php`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
                 transactions = [];
-            });
-    }
+            } else {
+                transactions = data.transactions;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching transactions:', error);
+            transactions = [];
+        });
+}
 
-
+document.addEventListener('DOMContentLoaded', () => {
     function fetchUserData() {
         fetch('api/user.php')
             .then(response => {
@@ -3257,7 +3257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchUserData();
     fetchNotifications();
     loadServiceData(); // Load dynamic service data
-    fetchAllTransactions().then(() => {
+    fetchTransactions().then(() => {
         filterTransactionsAndRender();
     });
     renderPage('dashboard');
