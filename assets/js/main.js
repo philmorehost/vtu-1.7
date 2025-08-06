@@ -2001,7 +2001,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetDataForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2126,7 +2126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert(`Error: ${data.message}`);
             }
             resetAirtimeForm();
-            fetchAllTransactions();
+            fetchTransactions();
         })
         .catch(error => {
             console.error('Error:', error);
@@ -2191,7 +2191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.token) {
                     electricityTokenInput.value = data.token;
                 }
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2293,7 +2293,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetCableTVForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2344,7 +2344,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBettingForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2492,7 +2492,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetBulkSMSForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2574,7 +2574,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetGiftCardForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
@@ -2629,7 +2629,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetRechargeCardForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
