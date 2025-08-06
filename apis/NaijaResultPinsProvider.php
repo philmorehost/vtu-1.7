@@ -51,7 +51,7 @@ class NaijaResultPinsProvider extends BaseApiProvider {
         }
     }
 
-    public function purchaseExamPin($examTypeId, $quantity = 1) {
+    public function purchaseExamCard($examTypeId, $quantity = 1) {
         $this->validateConfig();
 
         $data = [
