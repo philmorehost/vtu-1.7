@@ -508,11 +508,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="disco-provider" class="block text-gray-700 text-sm font-medium mb-2">Electricity Provider (Disco)</label>
                             <select id="disco-provider" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Disco</option>
-                                <option value="ikeja_electric">Ikeja Electric (IE)</option>
-                                <option value="eko_electric">Eko Electric (EKEDC)</option>
-                                <option value="abuja_electric">Abuja Electric (AEDC)</option>
-                                <option value="ibadan_electric">Ibadan Electric (IBEDC)</option>
-                                <!-- Add more as needed -->
                             </select>
                         </div>
                         <div class="mb-6">
@@ -572,10 +567,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="betting-platform" class="block text-gray-700 text-sm font-medium mb-2">Betting Platform</label>
                             <select id="betting-platform" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Platform</option>
-                                <option value="bet9ja">Bet9ja</option>
-                                <option value="sportybet">SportyBet</option>
-                                <option value="nairabet">NairaBet</option>
-                                <option value="betking">BetKing</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -746,20 +737,12 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="recharge-card-network" class="block text-gray-700 text-sm font-medium mb-2">Network</label>
                             <select id="recharge-card-network" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Network</option>
-                                <option value="MTN">MTN</option>
-                                <option value="Glo">Glo</option>
-                                <option value="Airtel">Airtel</option>
-                                <option value="9mobile">9mobile</option>
                             </select>
                         </div>
                         <div class="mb-4">
                             <label for="recharge-card-amount" class="block text-gray-700 text-sm font-medium mb-2">Amount (₦)</label>
                             <select id="recharge-card-amount" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Amount</option>
-                                <option value="100">₦100</option>
-                                <option value="200">₦200</option>
-                                <option value="500">₦500</option>
-                                <option value="1000">₦1000</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -1251,6 +1234,34 @@ if (!isset($_SESSION['user_id'])) {
         </div>
     </div>
 
+    <!-- Register Sender ID Modal -->
+    <div id="register-sender-id-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-800">Register New Sender ID</h3>
+                <button id="close-register-sender-id-modal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="register-sender-id-form">
+                <div class="mb-4">
+                    <label for="new-sender-id" class="block text-gray-700 text-sm font-medium mb-2">Sender ID</label>
+                    <input type="text" id="new-sender-id" name="sender_id" class="w-full p-3 rounded-lg border border-gray-300" required>
+                </div>
+                <div class="mb-4">
+                    <label for="sample-sms" class="block text-gray-700 text-sm font-medium mb-2">Sample SMS</label>
+                    <textarea id="sample-sms" name="sample_message" class="w-full p-3 rounded-lg border border-gray-300" required></textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">Register Sender ID</button>
+            </form>
+            <div class="mt-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Your Sender ID Requests</h3>
+                <div id="sender-id-requests-section">
+                    <!-- Sender ID requests will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
     <?php include 'chat.php'; ?>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/transactions.js"></script>

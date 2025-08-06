@@ -481,6 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'electricity':
                 electricityFormSection.classList.remove('hidden');
                 resetElectricityForm();
+                populateElectricityProviders();
                 break;
             case 'cabletv':
                 cabletvFormSection.classList.remove('hidden');
@@ -489,10 +490,12 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'betting':
                 bettingFormSection.classList.remove('hidden');
                 resetBettingForm();
+                populateBettingProviders();
                 break;
             case 'exam':
                 examFormSection.classList.remove('hidden');
                 resetExamForm();
+                populateExamBoards();
                 break;
             case 'bulksms':
                 bulksmsFormSection.classList.remove('hidden');
@@ -507,6 +510,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'recharge-card':
                 rechargeCardFormSection.classList.remove('hidden');
                 resetRechargeCardForm();
+                populateRechargeCardProviders();
                 break;
             default:
                 console.error('Unknown service type for form display:', serviceType);
@@ -577,14 +581,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let currentDetectedNetwork = dataDetectedNetworkDisplay.textContent;
         let selectedNetworkForPlans = dataManualNetworkSelect.value;
+        let networkChanged = false;
 
         if (dataBulkPurchaseToggle.checked) {
             if (!dataNetworkOverrideToggle.checked) {
                 const uniqueNetworks = await getUniqueNetworks(recipients);
                 if (uniqueNetworks.length === 1) {
-                    currentDetectedNetwork = uniqueNetworks[0];
-                    dataDetectedNetworkDisplay.textContent = currentDetectedNetwork;
-                    loadDataPlans(currentDetectedNetwork);
+                    if(currentDetectedNetwork !== uniqueNetworks[0]) {
+                        networkChanged = true;
+                        currentDetectedNetwork = uniqueNetworks[0];
+                        dataDetectedNetworkDisplay.textContent = currentDetectedNetwork;
+                    }
                     selectedNetworkForPlans = currentDetectedNetwork;
                 } else if (uniqueNetworks.length > 1) {
                     dataDetectedNetworkDisplay.textContent = 'Mixed/Manual Required';
@@ -600,29 +607,39 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 // Manual override is active, use selected manual network
                 selectedNetworkForPlans = dataManualNetworkSelect.value;
-                loadDataPlans(selectedNetworkForPlans);
             }
         } else { // Single purchase mode
             if (!dataNetworkOverrideToggle.checked) {
                 const singleNumber = dataPhoneNumberInput.value.trim();
                 const detected = await detectNetworkFromPhone(singleNumber);
-                dataDetectedNetworkDisplay.textContent = detected;
+                if(currentDetectedNetwork !== detected) {
+                    networkChanged = true;
+                    dataDetectedNetworkDisplay.textContent = detected;
+                }
                 if (detected !== 'N/A' && detected !== 'Unknown') {
-                    loadDataPlans(detected);
+                    selectedNetworkForPlans = detected;
                 } else {
                     dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
+                    selectedNetworkForPlans = '';
                 }
-                selectedNetworkForPlans = detected;
             } else {
                 // Manual override is active, use selected manual network
                 selectedNetworkForPlans = dataManualNetworkSelect.value;
-                loadDataPlans(selectedNetworkForPlans);
             }
         }
 
-        const dataPlanValue = dataPlanSelect.value;
-        const selectedPlan = dataPlans[selectedNetworkForPlans]?.find(p => p.value === dataPlanValue);
-        const pricePerPlan = selectedPlan ? selectedPlan.price : 0;
+        if(networkChanged) {
+            loadDataPlans(selectedNetworkForPlans);
+        }
+
+        const productId = dataPlanSelect.value;
+        let pricePerPlan = 0;
+        if(productId && serviceData.data && serviceData.data.networks && serviceData.data.networks[selectedNetworkForPlans]) {
+            const selectedPlan = serviceData.data.networks[selectedNetworkForPlans].find(p => p.plan_code === productId);
+            if(selectedPlan) {
+                pricePerPlan = selectedPlan.price;
+            }
+        }
 
         const totalCost = pricePerPlan * recipients.length;
         dataBulkTotalCostDisplay.textContent = `₦${totalCost.toFixed(2)}`;
@@ -745,6 +762,18 @@ document.addEventListener('DOMContentLoaded', () => {
         electricityTokenInput.value = '';
     }
 
+    function populateElectricityProviders() {
+        discoProviderSelect.innerHTML = '<option value="">Select Disco</option>';
+        if (serviceData.electricity && serviceData.electricity.products) {
+            serviceData.electricity.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.plan_code;
+                option.textContent = product.name;
+                discoProviderSelect.appendChild(option);
+            });
+        }
+    }
+
     // --- Cable TV Vending Form Logic ---
     function loadCableTvPlans(provider) {
         cabletvPlanSelect.innerHTML = '<option value="">Select a plan</option>';
@@ -777,6 +806,18 @@ document.addEventListener('DOMContentLoaded', () => {
         bettingAmountInput.value = '';
     }
 
+    function populateBettingProviders() {
+        bettingPlatformSelect.innerHTML = '<option value="">Select Platform</option>';
+        if (serviceData.betting && serviceData.betting.products) {
+            serviceData.betting.products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.plan_code;
+                option.textContent = product.name;
+                bettingPlatformSelect.appendChild(option);
+            });
+        }
+    }
+
     // --- Exam Vending Form Logic ---
     function updateExamTotalCost() {
         const examType = examTypeSelect.value;
@@ -793,6 +834,18 @@ document.addEventListener('DOMContentLoaded', () => {
         examTypeSelect.value = '';
         examQuantityInput.value = '1';
         updateExamTotalCost();
+    }
+
+    function populateExamBoards() {
+        examTypeSelect.innerHTML = '<option value="">Select Exam</option>';
+        if (serviceData.exam && serviceData.exam.networks && serviceData.exam.networks['All Networks']) {
+            serviceData.exam.networks['All Networks'].forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.plan_code;
+                option.textContent = product.name;
+                examTypeSelect.appendChild(option);
+            });
+        }
     }
 
     // --- Bulk SMS Sending Form Logic ---
@@ -950,6 +1003,31 @@ document.addEventListener('DOMContentLoaded', () => {
         rechargeCardQuantityInput.value = '1';
         updateRechargeCardTotalCost();
     }
+
+    function populateRechargeCardProviders() {
+        rechargeCardNetworkSelect.innerHTML = '<option value="">Select Network</option>';
+        if (serviceData.recharge_card && serviceData.recharge_card.networks) {
+            for (const network in serviceData.recharge_card.networks) {
+                const option = document.createElement('option');
+                option.value = network;
+                option.textContent = network;
+                rechargeCardNetworkSelect.appendChild(option);
+            }
+        }
+    }
+
+    rechargeCardNetworkSelect.addEventListener('change', () => {
+        const selectedNetwork = rechargeCardNetworkSelect.value;
+        rechargeCardAmountSelect.innerHTML = '<option value="">Select Amount</option>';
+        if (selectedNetwork && serviceData.recharge_card && serviceData.recharge_card.networks && serviceData.recharge_card.networks[selectedNetwork]) {
+            for (const amount in serviceData.recharge_card.networks[selectedNetwork]) {
+                const option = document.createElement('option');
+                option.value = amount;
+                option.textContent = `₦${amount}`;
+                rechargeCardAmountSelect.appendChild(option);
+            }
+        }
+    });
 
     // --- More Services Modal Logic ---
     function populateAllServicesModal() {
@@ -1853,8 +1931,19 @@ document.addEventListener('DOMContentLoaded', () => {
         await updateDataRecipientCountAndCost();
     });
 
-    dataPlanSelect.addEventListener('change', async () => {
-        await updateDataRecipientCountAndCost()
+    dataPlanSelect.addEventListener('change', () => {
+        const recipients = getDataRecipients();
+        const productId = dataPlanSelect.value;
+        let pricePerPlan = 0;
+        const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
+        if(productId && serviceData.data && serviceData.data.networks && serviceData.data.networks[selectedNetwork]) {
+            const selectedPlan = serviceData.data.networks[selectedNetwork].find(p => p.plan_code === productId);
+            if(selectedPlan) {
+                pricePerPlan = selectedPlan.price;
+            }
+        }
+        const totalCost = pricePerPlan * recipients.length;
+        dataBulkTotalCostDisplay.textContent = `₦${totalCost.toFixed(2)}`;
     });
 
     dataScheduleToggle.addEventListener('change', () => {
@@ -2276,7 +2365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.disabled = true;
 
         const formData = new FormData();
-        formData.append('examType', examType);
+        formData.append('card_type_id', examType);
         formData.append('quantity', quantity);
 
         fetch('api/exam_modular.php', {
@@ -3159,4 +3248,166 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     renderPage('dashboard');
     updateUnreadNotificationsDot();
+
+    // --- Register Sender ID Modal Elements ---
+    const registerSenderIdModal = document.getElementById('register-sender-id-modal');
+    const closeRegisterSenderIdModalBtn = document.getElementById('close-register-sender-id-modal');
+    const registerSenderIdForm = document.getElementById('register-sender-id-form');
+    const senderIdRequestsSection = document.getElementById('sender-id-requests-section');
+
+    registerSenderIdBtn.addEventListener('click', () => {
+        registerSenderIdModal.classList.remove('hidden');
+        fetchSenderIdRequests();
+    });
+
+    closeRegisterSenderIdModalBtn.addEventListener('click', () => {
+        registerSenderIdModal.classList.add('hidden');
+    });
+
+    registerSenderIdModal.addEventListener('click', (e) => {
+        if (e.target === registerSenderIdModal) {
+            registerSenderIdModal.classList.add('hidden');
+        }
+    });
+
+    registerSenderIdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(registerSenderIdForm);
+        formData.append('action', 'register');
+
+        try {
+            const response = await fetch('api/sms_sender_ids.php', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            if (result.success) {
+                alert(result.message);
+                registerSenderIdForm.reset();
+                fetchSenderIdRequests();
+            } else {
+                alert('Error: ' + result.message);
+            }
+        } catch (error) {
+            alert('An error occurred: ' + error.message);
+        }
+    });
+
+    function fetchSenderIdRequests() {
+        fetch('api/sms_sender_ids.php')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderSenderIdRequests(data.sender_ids);
+                } else {
+                    senderIdRequestsSection.innerHTML = `<p class="text-red-500">${data.message}</p>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching sender ID requests:', error);
+                senderIdRequestsSection.innerHTML = '<p>Could not load sender ID requests.</p>';
+            });
+    }
+
+    function renderSenderIdRequests(requests) {
+        senderIdRequestsSection.innerHTML = '';
+        if (requests.length === 0) {
+            senderIdRequestsSection.innerHTML = '<p class="text-gray-500">No sender ID requests found.</p>';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = 'divide-y divide-gray-100';
+
+        requests.forEach(request => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center py-3 px-4';
+            li.innerHTML = `
+                <div>
+                    <p class="font-medium text-gray-800">${request.sender_id}</p>
+                    <p class="text-xs text-gray-500">${request.status}</p>
+                </div>
+                <div>
+                    <button class="edit-sender-id-request-btn text-blue-600 hover:text-blue-800 mr-2" data-id="${request.id}" data-sender-id="${request.sender_id}" data-sample-message="${request.sample_message}" ${request.status !== 'disapproved' ? 'disabled' : ''}>
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete-sender-id-request-btn text-red-600 hover:text-red-800" data-id="${request.id}">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            ul.appendChild(li);
+        });
+        senderIdRequestsSection.appendChild(ul);
+
+        document.querySelectorAll('.edit-sender-id-request-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const requestId = e.currentTarget.dataset.id;
+                const senderId = e.currentTarget.dataset.senderId;
+                const sampleMessage = e.currentTarget.dataset.sampleMessage;
+
+                document.getElementById('new-sender-id').value = senderId;
+                document.getElementById('sample-sms').value = sampleMessage;
+                registerSenderIdForm.querySelector('button[type="submit"]').textContent = 'Update Sender ID';
+
+                const hiddenIdInput = document.createElement('input');
+                hiddenIdInput.type = 'hidden';
+                hiddenIdInput.name = 'id';
+                hiddenIdInput.value = requestId;
+                registerSenderIdForm.appendChild(hiddenIdInput);
+
+                registerSenderIdForm.querySelector('button[type="submit"]').onclick = async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(registerSenderIdForm);
+                    formData.append('action', 'edit');
+
+                    try {
+                        const response = await fetch('api/sms_sender_ids.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            alert(result.message);
+                            registerSenderIdForm.reset();
+                            registerSenderIdForm.querySelector('button[type="submit"]').textContent = 'Register Sender ID';
+                            registerSenderIdForm.querySelector('input[name="id"]').remove();
+                            fetchSenderIdRequests();
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    } catch (error) {
+                        alert('An error occurred: ' + error.message);
+                    }
+                };
+            });
+        });
+
+        document.querySelectorAll('.delete-sender-id-request-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                if (confirm('Are you sure you want to delete this request?')) {
+                    const requestId = e.currentTarget.dataset.id;
+                    const formData = new FormData();
+                    formData.append('action', 'delete');
+                    formData.append('id', requestId);
+
+                    try {
+                        const response = await fetch('api/sms_sender_ids.php', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            alert(result.message);
+                            fetchSenderIdRequests();
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    } catch (error) {
+                        alert('An error occurred: ' + error.message);
+                    }
+                }
+            });
+        });
+    }
 });
