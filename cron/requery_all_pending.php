@@ -34,11 +34,9 @@ try {
 
         try {
             // 2. Identify the provider
-            $serviceDetails = json_decode($transaction['service_details'], true);
-            $network = $serviceDetails['network'] ?? null;
-
             $gateway = new ModularApiGateway($pdo, $userId);
-            $networkId = $gateway->getNetworkId($network);
+            $identifier = $gateway->getIdentifierFromDetails($transaction['type'], $transaction['service_details']);
+            $networkId = $gateway->getNetworkId($identifier);
             $providerConfig = $gateway->getProvider($transaction['type'], $networkId);
 
             if (!$providerConfig) {

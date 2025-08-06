@@ -52,6 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
+        // Check for duplicate transaction
+        if ($adminControls->isDuplicateTransaction($userId, 'Electricity', $amount, $meterNumber)) {
+            echo json_encode(['success' => false, 'message' => 'Duplicate transaction detected. Please wait 2 minutes before trying again.']);
+            exit();
+        }
+
         $pdo->beginTransaction();
 
         // Get electricity service product
@@ -100,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Record transaction as pending
         $description = "Electricity purchase of ₦{$amount} for meter {$meterNumber} ({$disco})";
         $serviceDetails = [
-            'meterNumber' => $meterNumber,
+            'recipient' => $meterNumber,
             'amount' => $amount,
             'cost' => $cost,
             'disco' => $disco,

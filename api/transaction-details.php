@@ -3,7 +3,7 @@ require_once('../includes/session_config.php');
 require_once('../includes/db.php');
 
 if (!isset($_SESSION['user_id'])) {
-    echo json_encode(['error' => 'User not logged in']);
+    echo json_encode(['success' => false, 'message' => 'User not logged in']);
     exit();
 }
 
@@ -11,7 +11,7 @@ $user_id = $_SESSION['user_id'];
 $transaction_id = $_GET['id'] ?? null;
 
 if (!$transaction_id) {
-    echo json_encode(['error' => 'Transaction ID not provided']);
+    echo json_encode(['success' => false, 'message' => 'Transaction ID not provided']);
     exit();
 }
 
@@ -26,12 +26,12 @@ try {
     $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($transaction) {
-        echo json_encode($transaction);
+        echo json_encode(['success' => true, 'data' => $transaction]);
     } else {
-        echo json_encode(['error' => 'Transaction not found']);
+        echo json_encode(['success' => false, 'message' => 'Transaction not found']);
     }
 
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

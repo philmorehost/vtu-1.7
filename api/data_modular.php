@@ -48,9 +48,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     try {
+        // Get data plan details first to get the cost
+        $stmt = $pdo->prepare("SELECT selling_price FROM service_products WHERE id = ?");
+        $stmt->execute([$productId]);
+        $product = $stmt->fetch();
+        if (!$product) {
+            echo json_encode(['success' => false, 'message' => 'Invalid product ID.']);
+            exit();
+        }
+        $cost = $product['selling_price'];
+
+        // Check for duplicate transaction
+        if ($adminControls->isDuplicateTransaction($userId, 'Data', $cost, $phoneNumber)) {
+            echo json_encode(['success' => false, 'message' => 'Duplicate transaction detected. Please wait 2 minutes before trying again.']);
+            exit();
+        }
+
         $pdo->beginTransaction();
 
-        // Get data plan details
+        // Get full data plan details
         $stmt = $pdo->prepare("
             SELECT sp.*, n.name as network_name, n.code as network_code 
             FROM service_products sp 
@@ -95,10 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Record transaction as pending
         $description = "Data purchase: {$dataPlan['name']} ({$dataPlan['data_size']}) for {$phoneNumber}";
         $serviceDetails = [
-            'phoneNumber' => $phoneNumber,
-            'planCode' => $planCode,
-            'planName' => $dataPlan['name'],
-            'dataSize' => $dataPlan['data_size'],
+            'recipient' => $phoneNumber,
+            'plan_id' => $productId,
+            'plan_name' => $dataPlan['name'],
+            'data_size' => $dataPlan['data_size'],
             'validity' => $dataPlan['validity'],
             'cost' => $cost,
             'network' => $network

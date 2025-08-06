@@ -1242,7 +1242,7 @@ document.addEventListener('DOMContentLoaded', () => {
             li.innerHTML = `
                 <div>
                     <p class="font-medium text-gray-800">${txn.description}</p>
-                    <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()} - ${statusHtml}</p>
+                    <p class="text-xs text-gray-500">${new Date(txn.created_at).toLocaleString()} - ${statusHtml}</p>
                 </div>
                 <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
                     ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
@@ -2095,24 +2095,36 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
         formData.append('amount', amountPerRecipient);
 
+        const isBulk = airtimeBulkPurchaseToggle.checked;
+        const phoneNumbers = getAirtimeRecipients().join(',');
+        const batchId = isBulk ? `batch_${Date.now()}` : null;
+
+        const formData = new FormData();
+        formData.append('phoneNumbers', phoneNumbers);
+        formData.append('amount', amountPerRecipient);
+        formData.append('network', selectedNetwork);
+        if (isBulk) {
+            formData.append('batch_id', batchId);
+            formData.append('source', 'API_BULK');
+        }
+
         fetch('api/airtime_modular.php', {
             method: 'POST',
             body: formData
         })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
-        })
+        .then(response => response.json())
         .then(data => {
-            if (data.success || (data.status && data.status === 'Pending')) {
-                alert(data.message);
-                resetAirtimeForm();
-                fetchAllTransactions(); // Refresh transactions
+            if (data.success) {
+                let message = "Batch processed.\n";
+                data.responses.forEach(res => {
+                    message += `\n${res.phoneNumber}: ${res.message}`;
+                });
+                alert(message);
             } else {
                 alert(`Error: ${data.message}`);
             }
+            resetAirtimeForm();
+            fetchAllTransactions();
         })
         .catch(error => {
             console.error('Error:', error);
@@ -3173,7 +3185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p><strong>Amount:</strong> ₦${Math.abs(transaction.amount).toFixed(2)}</p>
                         <p><strong>Balance Before:</strong> ₦${Number(transaction.balance_before).toFixed(2)}</p>
                         <p><strong>Balance After:</strong> ₦${Number(transaction.balance_after).toFixed(2)}</p>
-                        <p><strong>Date:</strong> ${new Date(transaction.date).toLocaleString()}</p>
+                        <p><strong>Date:</strong> ${new Date(transaction.created_at).toLocaleString()}</p>
                         <p><strong>Status:</strong> ${transaction.status}</p>
                     `;
                     printReceiptBtn.dataset.transactionId = transaction.id;
@@ -3255,9 +3267,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const registerSenderIdForm = document.getElementById('register-sender-id-form');
     const senderIdRequestsSection = document.getElementById('sender-id-requests-section');
 
-    registerSenderIdBtn.addEventListener('click', () => {
-        registerSenderIdModal.classList.remove('hidden');
-        fetchSenderIdRequests();
+    document.body.addEventListener('click', (e) => {
+        if (e.target.matches('#register-sender-id-btn')) {
+            registerSenderIdModal.classList.remove('hidden');
+            fetchSenderIdRequests();
+        }
     });
 
     closeRegisterSenderIdModalBtn.addEventListener('click', () => {

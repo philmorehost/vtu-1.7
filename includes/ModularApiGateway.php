@@ -318,4 +318,27 @@ class ModularApiGateway {
             error_log("Transaction Log Error: " . $e->getMessage());
         }
     }
+
+    /**
+     * Get identifier from service details based on service type
+     */
+    public function getIdentifierFromDetails($serviceType, $serviceDetails) {
+        if (!is_array($serviceDetails)) {
+            $serviceDetails = json_decode($serviceDetails, true);
+        }
+
+        switch (strtolower($serviceType)) {
+            case 'airtime':
+            case 'data':
+                return $serviceDetails['network'] ?? null;
+            case 'electricity':
+                return $serviceDetails['disco'] ?? null;
+            case 'cabletv':
+                return $serviceDetails['provider'] ?? null;
+            case 'betting':
+                return $serviceDetails['platform'] ?? null;
+            default:
+                return null;
+        }
+    }
 }

@@ -30,7 +30,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('print-receipt-btn').dataset.transactionId = data.id;
                     transactionDetailsModal.classList.remove('hidden');
                 });
-        }
 
         if (viewAllBtn) {
             viewAllBtn.addEventListener('click', function() {
@@ -96,7 +95,3 @@ document.addEventListener('DOMContentLoaded', function() {
             fetchTransactions(1, 5, recentTransactionsContainer);
         }
     });
-} catch (e) {
-    console.error('Error in transactions.js:', e);
-    alert('A critical error occurred in the transaction script. Please check the console.');
-}

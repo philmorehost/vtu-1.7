@@ -204,5 +204,47 @@ class AdminControls {
             return ['blocked' => false, 'keyword' => ''];
         }
     }
+
+    /**
+     * Check for duplicate transactions to prevent accidental double-sends
+     * @param int $userId
+     * @param string $type - Transaction type (e.g., 'Airtime', 'Data')
+     * @param float $amount
+     * @param string $recipient - Phone number, meter number, etc.
+     * @param int $minutes - Time window to check for duplicates (default 2 mins)
+     * @return bool
+     */
+    public function isDuplicateTransaction($userId, $type, $amount, $recipient, $minutes = 2) {
+        try {
+            $timeWindow = new DateTime();
+            $timeWindow->sub(new DateInterval("PT{$minutes}M"));
+            $timeWindowStr = $timeWindow->format('Y-m-d H:i:s');
+
+            $stmt = $this->pdo->prepare("
+                SELECT COUNT(*)
+                FROM transactions
+                WHERE user_id = :user_id
+                AND type = :type
+                AND amount = :amount
+                AND JSON_EXTRACT(service_details, '$.recipient') = :recipient
+                AND created_at >= :time_window
+            ");
+
+            $stmt->execute([
+                ':user_id' => $userId,
+                ':type' => $type,
+                ':amount' => -$amount, // Transactions store amounts as negative
+                ':recipient' => $recipient,
+                ':time_window' => $timeWindowStr
+            ]);
+
+            return $stmt->fetchColumn() > 0;
+
+        } catch (PDOException $e) {
+            // Log error, but allow transaction to proceed
+            error_log("Duplicate transaction check failed: " . $e->getMessage());
+            return false;
+        }
+    }
 }
 ?>
