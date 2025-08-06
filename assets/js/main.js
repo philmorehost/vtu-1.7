@@ -1,4 +1,23 @@
 
+let transactions = [];
+// --- API Fetch Functions ---
+function fetchTransactions() {
+    return fetch(`api/transactions.php`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error(data.error);
+                transactions = [];
+            } else {
+                transactions = data.transactions;
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching transactions:', error);
+            transactions = [];
+        });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Page Elements ---
     const appContainer = document.getElementById('app-container');
@@ -296,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let bankDetails = [];
 
     // Data that will be fetched from the backend
-    let transactions = [];
     let phoneBookGroups = [];
     let registeredSenderIds = [];
 
@@ -821,17 +839,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Exam Vending Form Logic ---
     function updateExamTotalCost() {
-        const examType = examTypeSelect.value; // This is the plan_code
+        const examType = examTypeSelect.value;
         const quantity = parseInt(examQuantityInput.value) || 0;
         let pricePerPin = 0;
-
-        if (serviceData.exam && serviceData.exam.networks && serviceData.exam.networks['All Networks']) {
-            const selectedExam = serviceData.exam.networks['All Networks'].find(exam => exam.plan_code === examType);
-            if (selectedExam) {
-                pricePerPin = parseFloat(selectedExam.price);
-            }
+        if (serviceData.exam && serviceData.exam.types && serviceData.exam.types[examType]) {
+            pricePerPin = serviceData.exam.types[examType].price;
         }
-
         const total = pricePerPin * quantity;
         examTotalAmountDisplay.textContent = `₦${total.toFixed(2)}`;
     }
@@ -2382,7 +2395,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('card_type_id', examType);
         formData.append('quantity', quantity);
 
-        fetch('api/exam_card_modular.php', {
+        fetch('api/exam_modular.php', {
             method: 'POST',
             body: formData
         })
@@ -3105,23 +3118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    // --- API Fetch Functions ---
-
-function fetchTransactions() {
-    return fetch(`api/transactions.php`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                console.error(data.error);
-                transactions = [];
-            } else {
-                transactions = data.transactions;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching transactions:', error);
-            transactions = [];
-        });
     function fetchUserData() {
         fetch('api/user.php')
             .then(response => {
