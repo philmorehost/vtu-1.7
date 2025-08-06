@@ -30,13 +30,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     document.getElementById('print-receipt-btn').dataset.transactionId = data.id;
                     transactionDetailsModal.classList.remove('hidden');
                 });
+    }
 
-        if (viewAllBtn) {
-            viewAllBtn.addEventListener('click', function() {
-                transactionHistoryModal.classList.remove('hidden');
-                fetchTransactions(currentPage, limit, allTransactionsContainer);
-            });
-        }
+    if (viewAllBtn) {
+        viewAllBtn.addEventListener('click', function() {
+            transactionHistoryModal.classList.remove('hidden');
+            fetchTransactions(currentPage, limit, allTransactionsContainer);
+        });
+    }
 
         if (closeTransactionHistoryModal) {
             closeTransactionHistoryModal.addEventListener('click', function() {
