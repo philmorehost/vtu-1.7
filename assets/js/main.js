@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
     // --- Page Elements ---
     const appContainer = document.getElementById('app-container');
@@ -1222,6 +1223,129 @@ document.addEventListener('DOMContentLoaded', () => {
         renderRecentTransactions();
     }
 
+    function renderRecentTransactions() {
+        recentTransactionsContainer.innerHTML = '';
+        const recent = transactions.slice(0, 5);
+
+        if (recent.length === 0) {
+            recentTransactionsContainer.innerHTML = '<p class="text-gray-500 text-center">No recent transactions.</p>';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.className = 'divide-y divide-gray-100';
+
+        recent.forEach(txn => {
+            const li = document.createElement('li');
+            li.className = 'flex justify-between items-center py-3 px-4 hover:bg-gray-50 cursor-pointer';
+            li.dataset.transactionId = txn.id;
+            const statusHtml = `<span class="text-xs font-semibold ${txn.status === 'Completed' ? 'text-green-600' : (txn.status === 'Failed' ? 'text-red-600' : 'text-yellow-600')}">${txn.status}</span>`;
+            li.innerHTML = `
+                <div>
+                    <p class="font-medium text-gray-800">${txn.description}</p>
+                    <p class="text-xs text-gray-500">${new Date(txn.created_at).toLocaleString()} - ${statusHtml}</p>
+                </div>
+                <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
+                    ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
+                </p>
+            `;
+            ul.appendChild(li);
+        });
+        recentTransactionsContainer.appendChild(ul);
+
+        document.querySelectorAll('#recent-transactions li').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const txnId = e.currentTarget.dataset.transactionId;
+                showTransactionDetailsModal(txnId);
+            });
+        });
+    }
+
+    function renderTransactions() {
+        transactionsList.innerHTML = '';
+        const startIndex = (currentTransactionPage - 1) * transactionsPerPage;
+        const endIndex = startIndex + transactionsPerPage;
+        const transactionsToDisplay = filteredTransactions.slice(startIndex, endIndex);
+
+        if (transactionsToDisplay.length === 0) {
+            transactionsList.innerHTML = '<li class="p-4 text-gray-500 text-center">No transactions found.</li>';
+            transactionPageInfo.textContent = 'Page 0 of 0';
+            prevTransactionsBtn.disabled = true;
+            nextTransactionsBtn.disabled = true;
+            return;
+        }
+
+        transactionsToDisplay.forEach(txn => {
+            const li = document.createElement('li');
+            li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'px-4', 'hover:bg-gray-50', 'cursor-pointer');
+            li.dataset.transactionId = txn.id;
+
+            let statusHtml = `<span class="font-semibold ${txn.status === 'Completed' ? 'text-green-600' : (txn.status === 'Failed' ? 'text-red-600' : 'text-yellow-600')}">${txn.status}</span>`;
+            if (txn.status === 'Pending') {
+                statusHtml += ` <button class="requery-btn text-xs bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600" data-id="${txn.id}">Requery</button>`;
+            }
+
+            li.innerHTML = `
+                <div>
+                    <p class="font-medium text-gray-800">${txn.description}</p>
+                    <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()}</p>
+                    <p class="text-sm">${statusHtml}</p>
+                </div>
+                <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
+                    ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
+                </p>
+            `;
+            transactionsList.appendChild(li);
+        });
+
+        const totalPages = Math.ceil(filteredTransactions.length / transactionsPerPage);
+        transactionPageInfo.textContent = `Page ${currentTransactionPage} of ${totalPages}`;
+        prevTransactionsBtn.disabled = currentTransactionPage === 1;
+        nextTransactionsBtn.disabled = currentTransactionPage === totalPages;
+
+        document.querySelectorAll('#transactions-list li').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Do not open details modal if requery button was clicked
+                if (e.target.classList.contains('requery-btn')) {
+                    return;
+                }
+                const txnId = e.currentTarget.dataset.transactionId;
+                showTransactionDetailsModal(txnId);
+            });
+        });
+
+        document.querySelectorAll('.requery-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const txnId = e.currentTarget.dataset.id;
+                e.currentTarget.textContent = 'Requerying...';
+                e.currentTarget.disabled = true;
+
+                fetch('api/requery.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `transaction_id=${txnId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Refresh transaction list to show new status
+                        fetchTransactions();
+                    } else {
+                        alert('Error: ' + data.message);
+                        e.currentTarget.textContent = 'Requery';
+                        e.currentTarget.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Requery error:', error);
+                    alert('An error occurred while requerying.');
+                    e.currentTarget.textContent = 'Requery';
+                    e.currentTarget.disabled = false;
+                });
+            });
+        });
+    }
 
     function exportTransactionsToPDF(data) {
         const { jsPDF } = window.jspdf;
@@ -2978,6 +3102,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- API Fetch Functions ---
 
+    function fetchAllTransactions() {
+        return fetch(`api/transactions.php`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    transactions = [];
+                } else {
+                    transactions = data.transactions;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching transactions:', error);
+                transactions = [];
+            });
+    }
 
 
     function fetchUserData() {
