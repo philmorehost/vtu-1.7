@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeTransactionHistoryModal = document.getElementById('close-transaction-history-modal');
     const transactionDetailsModal = document.getElementById('transaction-details-modal');
     const closeTransactionDetailsModal = document.getElementById('close-transaction-details-modal');
+    const recentTransactionsContainer = document.getElementById('recent-transactions');
 
     let currentPage = 1;
     const limit = 10;
@@ -39,11 +40,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-        if (closeTransactionHistoryModal) {
-            closeTransactionHistoryModal.addEventListener('click', function() {
-                transactionHistoryModal.classList.add('hidden');
-            });
-        }
+    if (closeTransactionHistoryModal) {
+        closeTransactionHistoryModal.addEventListener('click', function() {
+            transactionHistoryModal.classList.add('hidden');
+        });
+    }
 
         if (closeTransactionDetailsModal) {
             closeTransactionDetailsModal.addEventListener('click', function() {
