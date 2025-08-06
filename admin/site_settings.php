@@ -49,6 +49,16 @@ require_once('includes/header.php');
             <p class="text-xs text-gray-500 mt-1">Email address to receive admin notifications</p>
         </div>
         <div class="md:col-span-2 mt-6">
+            <h3 class="text-xl font-bold mb-4">Cron Job Settings</h3>
+            <div class="bg-gray-100 p-4 rounded-lg">
+                <p class="text-sm text-gray-700">To enable automatic requery of pending transactions, set up a cron job on your server to run the following script every 5 minutes:</p>
+                <code class="block bg-gray-200 text-gray-800 p-2 rounded-md mt-2">
+                    */5 * * * * /usr/bin/php <?php echo realpath(__DIR__ . '/../cron/requery_all_pending.php'); ?>
+                </code>
+                <p class="text-xs text-gray-500 mt-2">The exact command may vary depending on your server configuration. Contact your hosting provider for assistance if you are unsure.</p>
+            </div>
+        </div>
+        <div class="md:col-span-2 mt-6">
             <h3 class="text-xl font-bold mb-4">SMTP Settings</h3>
         </div>
         <div>
