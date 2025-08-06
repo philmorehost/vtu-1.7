@@ -94,4 +94,4 @@ document.addEventListener('DOMContentLoaded', function() {
         if (recentTransactionsContainer) {
             fetchTransactions(1, 5, recentTransactionsContainer);
         }
-    });
+    }

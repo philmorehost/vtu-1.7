@@ -2091,10 +2091,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitButton.innerHTML = 'Processing...';
         submitButton.disabled = true;
 
-        const formData = new FormData();
-        formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-        formData.append('amount', amountPerRecipient);
-
         const isBulk = airtimeBulkPurchaseToggle.checked;
         const phoneNumbers = getAirtimeRecipients().join(',');
         const batchId = isBulk ? `batch_${Date.now()}` : null;
