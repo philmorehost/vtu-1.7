@@ -3122,9 +3122,6 @@ function fetchTransactions() {
             console.error('Error fetching transactions:', error);
             transactions = [];
         });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
     function fetchUserData() {
         fetch('api/user.php')
             .then(response => {
