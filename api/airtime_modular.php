@@ -114,7 +114,7 @@ function processSingleAirtime($pdo, $userId, $phoneNumber, $amount, $network, $s
     if (!$currentNetwork) {
         $currentNetwork = 'MTN'; // Default if not detected
     }
-    $networkId = $gateway->getNetworkId($currentNetwork);
+    $networkId = $modularGateway->getNetworkId($currentNetwork);
 
     $stmt = $pdo->prepare("SELECT discount_percentage FROM service_products WHERE service_type = 'airtime' AND (network_id = ? OR network_id IS NULL) AND status = 'active' ORDER BY network_id DESC LIMIT 1");
     $stmt->execute([$networkId]);
