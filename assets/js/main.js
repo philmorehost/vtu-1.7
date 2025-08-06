@@ -2382,7 +2382,7 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('card_type_id', examType);
         formData.append('quantity', quantity);
 
-        fetch('api/exam_modular.php', {
+        fetch('api/exam_card_modular.php', {
             method: 'POST',
             body: formData
         })
