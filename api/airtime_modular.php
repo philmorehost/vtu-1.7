@@ -88,6 +88,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         error_log("Modular Airtime API Error: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'System error: ' . $e->getMessage()]);
     }
+} else {
+    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+}
 
 function processSingleAirtime($pdo, $userId, $phoneNumber, $amount, $network, $source, $batchId, $adminControls, $modularGateway) {
     // Check admin controls
@@ -159,8 +162,5 @@ function processSingleAirtime($pdo, $userId, $phoneNumber, $amount, $network, $s
         'status' => $finalStatus,
         'phoneNumber' => $phoneNumber
     ];
-
-} else {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
 }
 ?>
