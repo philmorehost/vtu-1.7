@@ -148,7 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $transactionId = $pdo->lastInsertId();
 
         // Use modular API gateway to process data purchase
-        $apiResponse = $modularGateway->purchaseData($productId, $phoneNumber);
+        $apiResponse = $modularGateway->purchaseData($phoneNumber, $dataPlan['plan_code'], $dataPlan['network_name']);
 
         // Update transaction based on API response
         $finalStatus = $apiResponse['success'] ? 'Completed' : 'Failed';
