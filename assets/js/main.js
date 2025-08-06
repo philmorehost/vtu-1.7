@@ -2396,7 +2396,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.success || (data.status && data.status === 'Pending')) {
                 alert(data.message);
                 resetExamForm();
-                fetchAllTransactions(); // Refresh transactions
+                fetchTransactions(); // Refresh transactions
             } else {
                 alert(`Error: ${data.message}`);
             }
