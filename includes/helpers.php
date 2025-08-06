@@ -16,12 +16,28 @@ function detectNetworkByPhone(string $phoneNumber, PDO $pdo): ?array {
     }
 
     // Fetch prefixes from the database
-    $stmt = $pdo->query("SELECT n.name, np.prefix FROM networks n JOIN network_prefixes np ON n.id = np.network_id WHERE n.status = 'active'");
-    $prefixesFromDb = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
-
     $networkPrefixes = [];
-    foreach($prefixesFromDb as $networkName => $prefixes) {
-        $networkPrefixes[$networkName] = array_column($prefixes, 'prefix');
+    try {
+        $stmt = $pdo->query("SELECT n.name, np.prefix FROM networks n JOIN network_prefixes np ON n.id = np.network_id WHERE n.status = 'active'");
+        $prefixesFromDb = $stmt->fetchAll(PDO::FETCH_GROUP | PDO::FETCH_ASSOC);
+
+        if ($prefixesFromDb) {
+            foreach($prefixesFromDb as $networkName => $prefixes) {
+                $networkPrefixes[$networkName] = array_column($prefixes, 'prefix');
+            }
+        }
+    } catch (PDOException $e) {
+        // Fallback to hardcoded prefixes if db query fails
+        error_log("Error fetching network prefixes from DB: " . $e->getMessage());
+    }
+
+    if (empty($networkPrefixes)) {
+        $networkPrefixes = [
+            'MTN' => ['0803', '0806', '0703', '0706', '0813', '0810', '0814', '0816', '0903', '0906', '0913', '0916'],
+            'GLO' => ['0805', '0807', '0705', '0815', '0811', '0905', '0915'],
+            'AIRTEL' => ['0802', '0808', '0708', '0812', '0701', '0902', '0907', '0901', '0904', '0912'],
+            '9MOBILE' => ['0809', '0818', '0817', '0909', '0908']
+        ];
     }
 
     $detectedNetworkName = null;
