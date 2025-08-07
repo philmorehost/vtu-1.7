@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataNetworkOverrideToggle = document.getElementById('data-network-override-toggle');
     const dataManualNetworkSelection = document.getElementById('data-manual-network-selection');
     const dataManualNetworkSelect = document.getElementById('data-manual-network');
-    const dataTypeSelect = document.getElementById('data-type');
     const dataPlanSelect = document.getElementById('data-plan');
     const dataBulkTotalCostSection = document.getElementById('data-bulk-total-cost-section');
     const dataBulkTotalCostDisplay = document.getElementById('data-bulk-total-cost');
@@ -574,31 +573,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Data Vending Form Logic ---
-    function loadDataTypes(network) {
-        dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
-        if (serviceData.data && serviceData.data.networks && serviceData.data.networks[network]) {
-            const dataTypes = [...new Set(serviceData.data.networks[network].map(plan => plan.name.split(' ')[1]))];
-            dataTypes.forEach(dataType => {
-                const option = document.createElement('option');
-                option.value = dataType;
-                option.textContent = dataType;
-                dataTypeSelect.appendChild(option);
-            });
-        }
-    }
-
-    function loadDataPlans(network, dataType) {
+    function loadDataPlans(network) {
         dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         if (serviceData.data && serviceData.data.networks && serviceData.data.networks[network]) {
-            serviceData.data.networks[network]
-                .filter(plan => plan.name.split(' ')[1] === dataType)
-                .forEach(plan => {
-                    const option = document.createElement('option');
-                    option.value = plan.plan_code;
-                    option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
-                    option.dataset.price = plan.price;
-                    dataPlanSelect.appendChild(option);
-                });
+            serviceData.data.networks[network].forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.plan_code;
+                option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
+                option.dataset.price = plan.price;
+                dataPlanSelect.appendChild(option);
+            });
         }
     }
 
@@ -1935,10 +1919,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const detected = await detectNetworkFromPhone(phoneNumber);
                 dataDetectedNetworkDisplay.textContent = detected;
                 if (detected !== 'N/A' && detected !== 'Unknown') {
-                    loadDataTypes(detected);
-                    loadDataPlans(detected, dataTypeSelect.value);
+                    loadDataPlans(detected);
                 } else {
-                    dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
                     dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
                 }
             }
@@ -1965,19 +1947,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dataManualNetworkSelect.addEventListener('change', async () => {
         const selectedNetwork = dataManualNetworkSelect.value;
         if (selectedNetwork) {
-            loadDataTypes(selectedNetwork);
-            loadDataPlans(selectedNetwork, dataTypeSelect.value);
+            loadDataPlans(selectedNetwork);
         } else {
-            dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
             dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         }
         await updateDataRecipientCountAndCost();
-    });
-
-    dataTypeSelect.addEventListener('change', () => {
-        const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
-        const selectedDataType = dataTypeSelect.value;
-        loadDataPlans(selectedNetwork, selectedDataType);
     });
 
     dataPlanSelect.addEventListener('change', () => {
@@ -2016,10 +1990,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const recipients = getDataRecipients();
         const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
-        const dataType = dataTypeSelect.value;
         const productId = dataPlanSelect.value;
 
-        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !dataType || !productId) {
+        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !productId) {
             alert('Please fill in all details correctly.');
             return;
         }
