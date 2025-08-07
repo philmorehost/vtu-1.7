@@ -89,15 +89,17 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 .then(data => {
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.innerHTML = '';
-                    if (data.messages) {
+                    if (data.success && data.messages) {
                         data.messages.forEach(message => {
                             const messageElement = document.createElement('div');
-                            if (message.sender_id == 1) {
-                                messageElement.className = 'admin-message';
-                                messageElement.innerHTML = `${message.message}`;
+                            messageElement.classList.add('mb-2', 'clear-both');
+
+                            if (message.is_admin_sender) {
+                                messageElement.classList.add('text-right');
+                                messageElement.innerHTML = `<span class="bg-blue-500 text-white py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                             } else {
-                                messageElement.className = 'user-message';
-                                messageElement.innerHTML = `${message.message}`;
+                                messageElement.classList.add('text-left');
+                                messageElement.innerHTML = `<span class="bg-gray-300 py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                             }
                             chatMessages.appendChild(messageElement);
                         });

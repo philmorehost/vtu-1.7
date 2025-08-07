@@ -1,33 +1,58 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', 0);
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
 require_once('../includes/db.php');
 
-if (!isset($_SESSION['user_id']) && !isset($_SESSION['admin_id'])) {
-    echo json_encode(['error' => 'User not logged in.']);
-    exit();
-}
+$is_admin_session = isset($_SESSION['admin_id']);
+$user_id_for_query = null;
 
-if (isset($_SESSION['admin_id'])) {
-    $user_id = $_GET['user_id'];
-    $current_user_id = 1; // Admin is always user ID 1 for chat prefix logic
+if ($is_admin_session) {
+    // Admin is viewing a chat with a specific user
+    if (!isset($_GET['user_id'])) {
+        echo json_encode(['success' => false, 'message' => 'User ID not specified.']);
+        exit();
+    }
+    $user_id_for_query = (int)$_GET['user_id'];
 } else {
-    $user_id = $_SESSION['user_id'];
-    $current_user_id = $_SESSION['user_id'];
+    // A regular user is viewing their own chat with the admin
+    if (!isset($_SESSION['user_id'])) {
+        echo json_encode(['success' => false, 'message' => 'User not logged in.']);
+        exit();
+    }
+    $user_id_for_query = (int)$_SESSION['user_id'];
 }
 
 try {
-    file_put_contents('api.log', "------------------\n", FILE_APPEND);
-    file_put_contents('api.log', "Getting messages for user: $user_id\n", FILE_APPEND);
-    $stmt = $pdo->prepare("SELECT * FROM chat WHERE (sender_id = ? AND recipient_id = 1) OR (sender_id = 1 AND recipient_id = ?) ORDER BY created_at ASC");
-    file_put_contents('api.log', "Executing query: " . $stmt->queryString . "\n", FILE_APPEND);
-    $stmt->execute([$user_id, $user_id]);
+    // The recipient_id for an admin is their admin_id, not a user_id.
+    // Let's assume the admin's user_id for chat purposes is a special value, e.g., 1,
+    // or we can check against the admins table. A simpler way is to check sender's admin status.
+
+    // Check if sender is an admin by seeing if their ID is in the admins table.
+    $stmt = $pdo->prepare("
+        SELECT
+            c.id,
+            c.sender_id,
+            c.recipient_id,
+            c.message,
+            c.created_at,
+            (a.id IS NOT NULL) as is_admin_sender
+        FROM chat c
+        LEFT JOIN admins a ON c.sender_id = a.id
+        WHERE (c.sender_id = ? AND c.recipient_id = 1) OR (c.sender_id = 1 AND c.recipient_id = ?)
+        ORDER BY c.created_at ASC
+    ");
+
+    // We assume admin user_id is 1 for simplicity in chat logic
+    $stmt->execute([$user_id_for_query, $user_id_for_query]);
     $messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(['messages' => $messages, 'user_id' => $current_user_id]);
+    echo json_encode([
+        'success' => true,
+        'messages' => $messages,
+        'is_admin_session' => $is_admin_session
+    ]);
+
 } catch (PDOException $e) {
-    echo json_encode(['error' => 'Failed to retrieve messages.']);
+    echo json_encode(['success' => false, 'message' => 'Failed to retrieve messages.']);
 }
 ?>

@@ -43,25 +43,26 @@
                 .then(data => {
                     const chatMessages = document.getElementById('chat-messages');
                     chatMessages.innerHTML = '';
-                    if (data.messages) {
+                    if (data.success && data.messages) {
                         data.messages.forEach(message => {
                             const messageElement = document.createElement('div');
-                            messageElement.classList.add('mb-2');
-                            // Fix: Check if message is from admin (sender_id == 1) to show admin prefix
-                            if (message.sender_id == 1) {
-                                // Admin message - show with admin prefix
-                                messageElement.innerHTML = `<span class="bg-gray-300 py-1 px-3 rounded-lg"> ${message.message}</span>`;
-                            } else if (message.sender_id == data.user_id) {
-                                // User's own message - show on right side
+                            messageElement.classList.add('mb-2', 'clear-both');
+
+                            // is_admin_sender is now a boolean provided by the API
+                            if (message.is_admin_sender) {
+                                // Admin's message: right-aligned, blue background
                                 messageElement.classList.add('text-right');
-                                messageElement.innerHTML = `<span class="bg-blue-500 text-white py-1 px-3 rounded-lg">${message.message}</span>`;
+                                messageElement.innerHTML = `<span class="bg-blue-500 text-white py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                             } else {
-                                // Other user message (should not happen in 1-on-1 chat with admin)
-                                messageElement.innerHTML = `<span class="bg-gray-300 py-1 px-3 rounded-lg">${message.message}</span>`;
+                                // User's message: left-aligned, gray background
+                                messageElement.classList.add('text-left');
+                                messageElement.innerHTML = `<span class="bg-gray-300 py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                             }
                             chatMessages.appendChild(messageElement);
                         });
                         chatMessages.scrollTop = chatMessages.scrollHeight;
+                    } else if (data.message) {
+                         chatMessages.innerHTML = `<p class="text-center text-gray-500">${data.message}</p>`;
                     }
                 });
         }

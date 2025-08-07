@@ -188,12 +188,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     data.messages.forEach(message => {
                         const messageElement = document.createElement('div');
                         messageElement.classList.add('mb-2');
-                        // Check if the message was sent by the admin (assuming admin ID is 1)
-                        if (message.sender_id == 1) { // Adjust admin ID if needed
+                        if (message.is_admin_sender) {
                             messageElement.classList.add('text-right');
-                            messageElement.innerHTML = `<span class="inline-block bg-blue-500 text-white py-1 px-3 rounded-lg max-w-xs md:max-w-md break-words">${message.message}</span>`;
+                            messageElement.innerHTML = `<span class="bg-blue-500 text-white py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                         } else {
-                            messageElement.innerHTML = `<span class="inline-block bg-gray-300 py-1 px-3 rounded-lg max-w-xs md:max-w-md break-words">${message.message}</span>`;
+                            messageElement.classList.add('text-left');
+                            messageElement.innerHTML = `<span class="bg-gray-300 py-1 px-3 rounded-lg inline-block max-w-xs">${message.message}</span>`;
                         }
                         chatMessagesContainer.appendChild(messageElement);
                     });
