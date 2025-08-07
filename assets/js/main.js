@@ -1962,8 +1962,10 @@ document.addEventListener('DOMContentLoaded', () => {
     dataManualNetworkSelect.addEventListener('change', async () => {
         const selectedNetwork = dataManualNetworkSelect.value;
         if (selectedNetwork) {
-            loadDataPlans(selectedNetwork);
+            loadDataTypes(selectedNetwork);
+            loadDataPlans(selectedNetwork, dataTypeSelect.value);
         } else {
+            dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
             dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         }
         await updateDataRecipientCountAndCost();
