@@ -510,7 +510,14 @@ if (!isset($_SESSION['user_id'])) {
 
                         <div class="mb-4">
                             <label for="meter-number" class="block text-gray-700 text-sm font-medium mb-2">Meter Number</label>
-                            <input type="text" id="meter-number" placeholder="Enter meter number" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <div class="flex">
+                                <input type="text" id="meter-number" placeholder="Enter meter number" class="w-full p-3 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <button type="button" id="verify-meter-btn" class="bg-blue-500 text-white p-3 rounded-r-lg font-semibold hover:bg-blue-600 transition-colors">Verify</button>
+                            </div>
+                        </div>
+                        <div id="electricity-verification-result" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                            <p class="text-sm text-gray-600 mb-2"><i class="fas fa-check-circle text-green-500 mr-1"></i> Verification Successful!</p>
+                            <p class="mb-1"><span class="font-semibold">Customer Name:</span> <span id="verified-customer-name-electricity"></span></p>
                         </div>
                         <div class="mb-4">
                             <label for="disco-provider" class="block text-gray-700 text-sm font-medium mb-2">Electricity Provider (Disco)</label>

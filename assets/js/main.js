@@ -109,6 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const electricityAmountInput = document.getElementById('electricity-amount');
     const electricityTokenSection = document.getElementById('electricity-token-section');
     const electricityTokenInput = document.getElementById('electricity-token');
+    const verifyMeterBtn = document.getElementById('verify-meter-btn');
+    const electricityVerificationResult = document.getElementById('electricity-verification-result');
+    const verifiedCustomerNameElectricity = document.getElementById('verified-customer-name-electricity');
     const electricityVendingForm = document.getElementById('electricity-vending-form');
 
     // --- Cable TV Vending Form Elements ---
@@ -2182,13 +2185,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     electricityServiceTypeRadios.forEach(radio => {
         radio.addEventListener('change', () => {
-            if (electricityPrepaidRadio.checked) {
-                electricityTokenSection.classList.remove('hidden');
-                electricityTokenInput.value = '';
-            } else {
+            if (electricityPostpaidRadio.checked) {
                 electricityTokenSection.classList.add('hidden');
                 electricityTokenInput.value = '';
+            } else {
+                electricityTokenSection.classList.remove('hidden');
+                electricityTokenInput.value = '';
             }
+        });
+    });
+
+    verifyMeterBtn.addEventListener('click', () => {
+        const meterNumber = meterNumberInput.value.trim();
+        const disco = discoProviderSelect.value;
+        const serviceType = document.querySelector('input[name="electricity-type"]:checked').value;
+
+        if (!meterNumber || !disco) {
+            alert('Please enter a meter number and select a disco provider.');
+            return;
+        }
+
+        verifyMeterBtn.innerHTML = 'Verifying...';
+        verifyMeterBtn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('action', 'verify_meter');
+        formData.append('meterNumber', meterNumber);
+        formData.append('disco', disco);
+        formData.append('serviceType', serviceType);
+
+        fetch('api/electricity_modular.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                electricityVerificationResult.classList.remove('hidden');
+                verifiedCustomerNameElectricity.textContent = data.data.customer_name;
+            } else {
+                alert(`Error: ${data.message}`);
+                electricityVerificationResult.classList.add('hidden');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while verifying the meter.');
+            electricityVerificationResult.classList.add('hidden');
+        })
+        .finally(() => {
+            verifyMeterBtn.innerHTML = 'Verify';
+            verifyMeterBtn.disabled = false;
         });
     });
 
@@ -2201,6 +2248,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const meterNumber = meterNumberInput.value;
         const disco = discoProviderSelect.value;
         const amount = parseFloat(electricityAmountInput.value);
+
+        if (electricityVerificationResult.classList.contains('hidden')) {
+            alert('Please verify the meter number before proceeding.');
+            return;
+        }
 
         if (!meterNumber || !disco || !amount || amount <= 0) {
             alert('Please fill in all details correctly.');
