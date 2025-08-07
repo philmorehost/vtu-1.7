@@ -1,5 +1,14 @@
 <?php
 $title = 'Site Settings';
+
+// Fetch extra settings from JSON file
+$extra_settings_file = '../includes/extra_settings.json';
+$extra_settings = [];
+if (file_exists($extra_settings_file)) {
+    $extra_settings = json_decode(file_get_contents($extra_settings_file), true);
+}
+$favicon_path = $extra_settings['site_favicon'] ?? null;
+
 require_once('includes/header.php');
 ?>
 
@@ -28,8 +37,8 @@ require_once('includes/header.php');
             <label class="block text-gray-700 text-sm font-bold mb-2" for="site_favicon">Site Favicon</label>
             <input type="file" name="site_favicon" id="site_favicon" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
             <p class="text-xs text-gray-500 mt-1">Allowed formats: PNG, JPG, ICO.</p>
-            <?php if (!empty($settings['site_favicon'])): ?>
-                <img src="../<?= htmlspecialchars($settings['site_favicon']) ?>" alt="Site Favicon" class="mt-2 h-16 w-auto" style="max-height: 64px;">
+            <?php if (!empty($favicon_path)): ?>
+                <img src="/<?= htmlspecialchars($favicon_path) ?>" alt="Site Favicon" class="mt-2 h-16 w-auto" style="max-height: 64px;">
             <?php endif; ?>
         </div>
         <div class="md:col-span-2">
@@ -47,9 +56,9 @@ require_once('includes/header.php');
                 ?>
                 <ul class="list-disc list-inside text-xs text-gray-600 mt-1">
                     <li><strong>Common Settings:</strong> Once every 5 minutes (*/5 * * * *) is recommended.</li>
-                    <li><strong>Command:</strong> <code class="bg-gray-200 p-1 rounded break-all">wget -q -O - "<?= htmlspecialchars($settings['cronjob_path'] ?: $cron_url) ?>" >/dev/null 2>&1</code></li>
+                    <li><strong>Command:</strong> <code class="bg-gray-200 p-1 rounded break-all">wget -q -O - "<?= htmlspecialchars($cron_url) ?>" >/dev/null 2>&1</code></li>
                 </ul>
-                <p class="text-xs text-gray-600 mt-1">Replace the URL with the full path to your cron file if you change it.</p>
+                <p class="text-xs text-gray-600 mt-1">This command will run the automated tasks script.</p>
             </div>
         </div>
         <div>

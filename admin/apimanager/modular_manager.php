@@ -4,12 +4,6 @@
  * Simplified admin interface for managing API providers using modules
  */
 
-<?php
-/**
- * Modular API Manager
- * Simplified admin interface for managing API providers using modules
- */
-
 require_once('../../includes/db.php');
 require_once('../../apis/ApiProviderRegistry.php');
 

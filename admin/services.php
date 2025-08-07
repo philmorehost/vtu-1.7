@@ -1,4 +1,5 @@
 <?php
+<?php
 require_once('../includes/db.php');
 
 // Handle AJAX requests

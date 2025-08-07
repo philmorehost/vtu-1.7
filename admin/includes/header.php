@@ -9,6 +9,14 @@ require_once(__DIR__ . '/../../includes/db.php');
 // Fetch current settings
 $stmt = $pdo->query("SELECT * FROM site_settings WHERE id = 1");
 $settings = $stmt->fetch(PDO::FETCH_ASSOC);
+
+// Fetch extra settings from JSON file
+$extra_settings_file = __DIR__ . '/../../includes/extra_settings.json';
+$extra_settings = [];
+if (file_exists($extra_settings_file)) {
+    $extra_settings = json_decode(file_get_contents($extra_settings_file), true);
+}
+$favicon_path = $extra_settings['site_favicon'] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="en" x-data="{sidebarCollapsed: false}">
@@ -16,6 +24,9 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title ?? 'Admin Panel') ?> - <?= htmlspecialchars($settings['site_name'] ?? 'VTU Platform') ?></title>
+    <?php if ($favicon_path): ?>
+        <link rel="icon" type="image/png" href="/<?= htmlspecialchars($favicon_path) ?>">
+    <?php endif; ?>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

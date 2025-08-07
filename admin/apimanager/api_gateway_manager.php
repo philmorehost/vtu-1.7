@@ -4,8 +4,6 @@
  * Central management interface for API providers and service routing
  */
 
-$title = 'API Gateway Manager';
-require_once('../includes/header.php');
 require_once('../../includes/db.php');
 
 // Handle AJAX requests
@@ -121,6 +119,9 @@ try {
 } catch (Exception $e) {
     $routes = [];
 }
+
+$title = 'API Gateway Manager';
+require_once('../includes/header.php');
 ?>
 
 <div class="container mx-auto px-4 py-6">
@@ -631,5 +632,3 @@ document.querySelectorAll('.delete-provider-btn').forEach(btn => {
     });
 });
 </script>
-
-<?php require_once('../includes/footer.php'); ?>
