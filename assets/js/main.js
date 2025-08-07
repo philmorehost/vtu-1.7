@@ -67,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dataNetworkOverrideToggle = document.getElementById('data-network-override-toggle');
     const dataManualNetworkSelection = document.getElementById('data-manual-network-selection');
     const dataManualNetworkSelect = document.getElementById('data-manual-network');
+    const dataTypeSelect = document.getElementById('data-type');
     const dataPlanSelect = document.getElementById('data-plan');
     const dataBulkTotalCostSection = document.getElementById('data-bulk-total-cost-section');
     const dataBulkTotalCostDisplay = document.getElementById('data-bulk-total-cost');
@@ -571,16 +572,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Data Vending Form Logic ---
-    function loadDataPlans(network) {
+    function loadDataTypes(network) {
+        dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
+        if (serviceData.data && serviceData.data.networks && serviceData.data.networks[network]) {
+            const dataTypes = [...new Set(serviceData.data.networks[network].map(plan => plan.type))];
+            dataTypes.forEach(dataType => {
+                const option = document.createElement('option');
+                option.value = dataType;
+                option.textContent = dataType;
+                dataTypeSelect.appendChild(option);
+            });
+        }
+    }
+
+    function loadDataPlans(network, dataType) {
         dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         if (serviceData.data && serviceData.data.networks && serviceData.data.networks[network]) {
-            serviceData.data.networks[network].forEach(plan => {
-                const option = document.createElement('option');
-                option.value = plan.plan_code;
-                option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
-                option.dataset.price = plan.price;
-                dataPlanSelect.appendChild(option);
-            });
+            serviceData.data.networks[network]
+                .filter(plan => plan.type === dataType)
+                .forEach(plan => {
+                    const option = document.createElement('option');
+                    option.value = plan.plan_code;
+                    option.textContent = `${plan.name} - ${plan.data_size} (${plan.validity}) - ₦${plan.price}`;
+                    option.dataset.price = plan.price;
+                    dataPlanSelect.appendChild(option);
+                });
         }
     }
 
@@ -648,7 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if(networkChanged) {
-            loadDataPlans(selectedNetworkForPlans);
+            loadDataTypes(selectedNetworkForPlans);
+            loadDataPlans(selectedNetworkForPlans, dataTypeSelect.value);
         }
 
         const productId = dataPlanSelect.value;
@@ -679,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dataNetworkOverrideToggle.checked = false;
         dataManualNetworkSelection.style.display = 'none';
         dataManualNetworkSelect.value = '';
+        dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
         dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
         dataBulkTotalCostDisplay.textContent = '₦0.00';
 
@@ -1950,6 +1968,12 @@ document.addEventListener('DOMContentLoaded', () => {
         await updateDataRecipientCountAndCost();
     });
 
+    dataTypeSelect.addEventListener('change', () => {
+        const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
+        const selectedDataType = dataTypeSelect.value;
+        loadDataPlans(selectedNetwork, selectedDataType);
+    });
+
     dataPlanSelect.addEventListener('change', () => {
         const recipients = getDataRecipients();
         const productId = dataPlanSelect.value;
@@ -1986,9 +2010,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const recipients = getDataRecipients();
         const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
+        const dataType = dataTypeSelect.value;
         const productId = dataPlanSelect.value;
 
-        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !productId) {
+        if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !dataType || !productId) {
             alert('Please fill in all details correctly.');
             return;
         }
