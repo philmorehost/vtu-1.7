@@ -1933,8 +1933,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const detected = await detectNetworkFromPhone(phoneNumber);
                 dataDetectedNetworkDisplay.textContent = detected;
                 if (detected !== 'N/A' && detected !== 'Unknown') {
-                    loadDataPlans(detected);
+                    loadDataTypes(detected);
+                    loadDataPlans(detected, dataTypeSelect.value);
                 } else {
+                    dataTypeSelect.innerHTML = '<option value="">Select a data type</option>';
                     dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
                 }
             }
