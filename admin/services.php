@@ -340,11 +340,11 @@ require_once('includes/header.php');
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Cost Price (₦)</label>
-                            <input type="number" id="productAmount" name="amount" step="0.01" min="0" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <input type="number" id="productAmount" name="amount" step="0.01" min="0" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Selling Price (₦)</label>
-                            <input type="number" id="productSellingPrice" name="selling_price" step="0.01" min="0" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <input type="number" id="productSellingPrice" name="selling_price" step="0.01" min="0" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
