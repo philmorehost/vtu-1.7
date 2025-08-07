@@ -31,7 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     handle_image_upload('auth_image', 'auth_image', $pdo);
     handle_image_upload('site_favicon', 'site_favicon', $pdo);
 
-    $cronjob_path = $_POST['cronjob_path'];
     $referral_bonus_tier1 = $_POST['referral_bonus_tier1'];
     $referral_bonus_tier2 = $_POST['referral_bonus_tier2'];
     $admin_email = $_POST['admin_email'];
@@ -43,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $smtp_from_email = $_POST['smtp_from_email'];
     $smtp_from_name = $_POST['smtp_from_name'];
 
-    $stmt = $pdo->prepare("UPDATE site_settings SET site_name = ?, session_timeout = ?, cache_control = ?, referral_bonus_tier1 = ?, referral_bonus_tier2 = ?, admin_email = ?, smtp_host = ?, smtp_port = ?, smtp_user = ?, smtp_pass = ?, smtp_from_email = ?, smtp_from_name = ?, cronjob_path = ? WHERE id = 1");
-    $stmt->execute([$site_name, $session_timeout, $cache_control, $referral_bonus_tier1, $referral_bonus_tier2, $admin_email, $smtp_host, $smtp_port, $smtp_user, $smtp_pass, $smtp_from_email, $smtp_from_name, $cronjob_path]);
+    $stmt = $pdo->prepare("UPDATE site_settings SET site_name = ?, session_timeout = ?, cache_control = ?, referral_bonus_tier1 = ?, referral_bonus_tier2 = ?, admin_email = ?, smtp_host = ?, smtp_port = ?, smtp_user = ?, smtp_pass = ?, smtp_from_email = ?, smtp_from_name = ? WHERE id = 1");
+    $stmt->execute([$site_name, $session_timeout, $cache_control, $referral_bonus_tier1, $referral_bonus_tier2, $admin_email, $smtp_host, $smtp_port, $smtp_user, $smtp_pass, $smtp_from_email, $smtp_from_name]);
 
     header('Location: site_settings.php');
     exit();

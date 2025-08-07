@@ -33,8 +33,7 @@ require_once('includes/header.php');
             <?php endif; ?>
         </div>
         <div class="md:col-span-2">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="cronjob_path">Cronjob Path</label>
-            <input type="text" name="cronjob_path" id="cronjob_path" value="<?= htmlspecialchars($settings['cronjob_path'] ?? '') ?>" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+            <label class="block text-gray-700 text-sm font-bold mb-2">Cronjob Setup</label>
             <div class="mt-2 p-4 bg-gray-100 rounded-lg">
                 <h4 class="font-semibold text-gray-800">How to Set Up a Cronjob</h4>
                 <p class="text-xs text-gray-600 mt-1">A cronjob is a scheduled task. You need to set one up to handle automated tasks like transaction requeries.</p>
