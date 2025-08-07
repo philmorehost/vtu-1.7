@@ -61,7 +61,7 @@ try {
     die("Database error: " . $e->getMessage());
 }
 
-$serviceTypes = ['data', 'airtime', 'cabletv', 'electricity', 'exam', 'betting', 'bulksms', 'recharge'];
+$serviceTypes = ['data', 'airtime', 'cabletv', 'electricity', 'exam', 'betting', 'bulksms', 'recharge', 'giftcard'];
 
 ?>
 
@@ -138,13 +138,13 @@ $serviceTypes = ['data', 'airtime', 'cabletv', 'electricity', 'exam', 'betting',
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Service Type</label>
-                    <select name="service_type" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                    <select id="serviceTypeSelect" name="service_type" required class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         <?php foreach ($serviceTypes as $type): ?>
                         <option value="<?= $type ?>"><?= ucfirst($type) ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
-                <div>
+                <div id="networkDropdownContainer">
                     <label class="block text-sm font-medium text-gray-700">Network</label>
                     <select name="network_id" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                         <option value="">All Networks</option>
@@ -188,14 +188,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const addRouteModal = document.getElementById('addRouteModal');
     const addRouteBtn = document.getElementById('addRouteBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const serviceTypeSelect = document.getElementById('serviceTypeSelect');
+    const networkDropdownContainer = document.getElementById('networkDropdownContainer');
+
+    const servicesWithNetwork = ['data', 'airtime', 'bulksms', 'recharge'];
+
+    function toggleNetworkDropdown() {
+        const selectedService = serviceTypeSelect.value;
+        if (servicesWithNetwork.includes(selectedService)) {
+            networkDropdownContainer.style.display = 'block';
+        } else {
+            networkDropdownContainer.style.display = 'none';
+        }
+    }
 
     addRouteBtn.addEventListener('click', () => {
         addRouteModal.classList.remove('hidden');
+        toggleNetworkDropdown(); // Set initial state when modal opens
     });
 
     cancelBtn.addEventListener('click', () => {
         addRouteModal.classList.add('hidden');
     });
+
+    serviceTypeSelect.addEventListener('change', toggleNetworkDropdown);
 });
 </script>
 
