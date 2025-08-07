@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
         switch ($_POST['action']) {
             case 'add_product':
-                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $_POST['service_type'],
                     $_POST['network_id'] ?: null,
@@ -19,13 +19,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     (float)$_POST['discount_percentage'],
                     $_POST['validity'],
                     $_POST['data_size'],
-                    $_POST['status']
+                    $_POST['status'],
+                    $_POST['product_type'] ?? null
                 ]);
                 echo json_encode(['success' => true, 'message' => 'Service product added successfully']);
                 exit;
                 
             case 'update_product':
-                $stmt = $pdo->prepare("UPDATE service_products SET name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=? WHERE id=?");
+                $stmt = $pdo->prepare("UPDATE service_products SET name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=?, product_type=? WHERE id=?");
                 $stmt->execute([
                     $_POST['name'],
                     $_POST['plan_code'],
@@ -35,6 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_POST['validity'],
                     $_POST['data_size'],
                     $_POST['status'],
+                    $_POST['product_type'] ?? null,
                     (int)$_POST['id']
                 ]);
                 echo json_encode(['success' => true, 'message' => 'Service product updated successfully']);
@@ -318,7 +320,7 @@ require_once('includes/header.php');
                                 <option value="giftcard">Gift Card</option>
                             </select>
                         </div>
-                        <div>
+                        <div id="networkField">
                             <label class="block text-sm font-medium text-gray-700">Network</label>
                             <select id="productNetwork" name="network_id" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
                                 <option value="">All Networks</option>
@@ -360,7 +362,7 @@ require_once('includes/header.php');
                         </div>
                     </div>
                     <!-- Fields for Data Plans -->
-                    <div id="dataFields" class="grid grid-cols-2 gap-4 hidden">
+                    <div id="dataFields" class="hidden grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Data Size</label>
                             <input type="text" id="productDataSize" name="data_size" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., 1GB, 500MB">
@@ -368,6 +370,13 @@ require_once('includes/header.php');
                         <div>
                             <label class="block text-sm font-medium text-gray-700">Validity</label>
                             <input type="text" id="productValidity" name="validity" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., 30 days, 1 month">
+                        </div>
+                    </div>
+                    <!-- Fields for Cable TV -->
+                    <div id="cableTvFields" class="hidden">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Cable TV Type / Category</label>
+                            <input type="text" id="productType" name="product_type" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., Bouquets, Add-ons">
                         </div>
                     </div>
                 </div>
@@ -458,12 +467,16 @@ document.getElementById('productServiceType').addEventListener('change', (e) => 
 
 function toggleServiceFields(serviceType) {
     const dataFields = document.getElementById('dataFields');
-    
-    if (serviceType === 'data') {
-        dataFields.classList.remove('hidden');
-    } else {
-        dataFields.classList.add('hidden');
-    }
+    const networkField = document.getElementById('networkField');
+    const cableTvFields = document.getElementById('cableTvFields');
+
+    // List of services that require a network provider
+    const servicesWithNetwork = ['airtime', 'data', 'bulksms', 'recharge'];
+
+    // Show/hide fields based on service type
+    dataFields.classList.toggle('hidden', serviceType !== 'data');
+    cableTvFields.classList.toggle('hidden', serviceType !== 'cabletv');
+    networkField.classList.toggle('hidden', !servicesWithNetwork.includes(serviceType));
 }
 
 // Product Form Submit
@@ -521,6 +534,7 @@ document.querySelectorAll('.edit-product-btn').forEach(btn => {
                 document.getElementById('productStatus').value = product.status;
                 document.getElementById('productDataSize').value = product.data_size || '';
                 document.getElementById('productValidity').value = product.validity || '';
+                document.getElementById('productType').value = product.product_type || '';
                 
                 toggleServiceFields(product.service_type);
                 productModal.classList.remove('hidden');

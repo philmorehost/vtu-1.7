@@ -78,21 +78,36 @@ try {
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
             
             $groupedPlans = [];
-            foreach ($products as $product) {
-                $networkName = $product['network_name'] ?: 'All Networks';
-                $groupedPlans[$networkName][] = [
-                    'id' => $product['id'],
-                    'plan_code' => $product['plan_code'],
-                    'name' => $product['name'],
-                    'description' => $product['description'],
-                    'price' => $product['selling_price'],
-                    'original_price' => $product['amount'],
-                    'discount' => $product['discount_percentage'],
-                    'data_size' => $product['data_size'],
-                    'validity' => $product['validity'],
-                    'network_code' => $product['network_code'],
-                    'network_number' => $product['network_number']
-                ];
+            if ($serviceType === 'cabletv') {
+                // For Cable TV, group by provider, then by product_type
+                foreach ($products as $product) {
+                    $networkName = $product['network_name'] ?: 'All Networks';
+                    $productType = $product['product_type'] ?: 'General';
+                    $groupedPlans[$networkName][$productType][] = [
+                        'id' => $product['id'],
+                        'plan_code' => $product['plan_code'],
+                        'name' => $product['name'],
+                        'price' => $product['selling_price']
+                    ];
+                }
+            } else {
+                // For other services, group by provider only
+                foreach ($products as $product) {
+                    $networkName = $product['network_name'] ?: 'All Networks';
+                    $groupedPlans[$networkName][] = [
+                        'id' => $product['id'],
+                        'plan_code' => $product['plan_code'],
+                        'name' => $product['name'],
+                        'description' => $product['description'],
+                        'price' => $product['selling_price'],
+                        'original_price' => $product['amount'],
+                        'discount' => $product['discount_percentage'],
+                        'data_size' => $product['data_size'],
+                        'validity' => $product['validity'],
+                        'network_code' => $product['network_code'],
+                        'network_number' => $product['network_number']
+                    ];
+                }
             }
             
             echo json_encode(['success' => true, 'data' => $groupedPlans]);

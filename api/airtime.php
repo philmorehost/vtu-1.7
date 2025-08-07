@@ -7,6 +7,7 @@ require_once('../includes/session_config.php');
 require_once('../includes/db.php');
 require_once('../includes/ApiGateway.php');
 require_once('../includes/AdminControls.php');
+require_once('../includes/network_helper.php'); // Include the new helper
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'User not logged in.']);
@@ -55,13 +56,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Detect network if not provided
         if (!$network) {
-            $response = file_get_contents("http://localhost/api/services.php?action=detect_network&phone=" . urlencode($phoneNumber));
-            $detectionResult = json_decode($response, true);
-            $networkId = null;
-            
-            if ($detectionResult && $detectionResult['success']) {
-                $networkId = $detectionResult['network']['id'];
-            }
+            $networkData = detectNetworkFromDB($phoneNumber, $pdo);
+            $networkId = $networkData ? $networkData['id'] : null;
         } else {
             // Get network ID from network code
             $stmt = $pdo->prepare("SELECT id FROM networks WHERE name = ? OR code = ?");

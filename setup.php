@@ -262,37 +262,22 @@ try {
     echo "Error creating blocked_identifiers: " . $e->getMessage();
 }
 
-    //Bulk sms sender ID moderation
-    $sql = "CREATE TABLE IF NOT EXISTS `senderid_requests` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `user_id` INT NOT NULL,
-    `sender_id` VARCHAR(50) NOT NULL,
-    `sample_message` TEXT,
-    `status` VARCHAR(20) DEFAULT 'pending',   -- pending, approved, rejected
-    `moderated_by` INT,                       -- admin id
-    `moderated_at` TIMESTAMP NULL DEFAULT NULL,
-    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-)";
-try {
-    $pdo->exec($sql);
-} catch (PDOException $e) {
-    echo "Error creating senderid_requests: " . $e->getMessage();
-}
-
     // SMS SENDER ID 
     $sql = "CREATE TABLE IF NOT EXISTS `sms_sender_ids` (
         `id` INT AUTO_INCREMENT PRIMARY KEY,
         `sender_id` VARCHAR(20) NOT NULL,
-        `status` ENUM('pending', 'approved', 'blocked') DEFAULT 'pending',
+        `sample_message` TEXT,
+        `status` ENUM('pending', 'approved', 'blocked', 'disapproved') DEFAULT 'pending',
         `requested_by` INT,
         `requested_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         `approved_by` INT DEFAULT NULL,
         `approved_at` TIMESTAMP NULL DEFAULT NULL,
         `blocked_reason` VARCHAR(255) DEFAULT NULL,
+        `review_notes` TEXT,
         `reviewed_by` INT DEFAULT NULL,
         `user_id` INT DEFAULT NULL,
-        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
     );";
     try {
     $pdo->exec($sql);

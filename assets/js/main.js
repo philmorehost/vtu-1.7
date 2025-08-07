@@ -608,13 +608,10 @@ document.addEventListener('DOMContentLoaded', () => {
         cabletvProviderSelect.innerHTML = '<option value="">Select Provider</option>';
         if (serviceOptions && Object.keys(serviceOptions).length > 0) {
             for (const providerName in serviceOptions) {
-                const providerData = serviceOptions[providerName];
-                if (providerData.products && providerData.products.length > 0) {
-                    const option = document.createElement('option');
-                    option.value = providerData.products[0].plan_code.split('_')[0]; // e.g., 'dstv' from 'dstv_padi'
-                    option.textContent = providerName;
-                    cabletvProviderSelect.appendChild(option);
-                }
+                const option = document.createElement('option');
+                option.value = providerName; // Use the provider name (e.g., 'DSTV') as the value
+                option.textContent = providerName;
+                cabletvProviderSelect.appendChild(option);
             }
         }
     }
@@ -939,24 +936,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Cable TV Vending Form Logic ---
-    function loadCableTvPlans(providerCode) {
-        const cableService = serviceData['cabletv'];
-        if (!cableService) return;
+    async function loadCableTvPlans(providerCode) {
+        const serviceOptions = await loadServiceByType('cabletv');
+        const providerData = serviceOptions[providerCode];
 
-        const provider = Object.values(cableService.networks).find(p => p.products.some(pr => pr.plan_code.startsWith(providerCode)));
-        if (!provider) {
-            cabletvPlanSelect.innerHTML = '<option value="">No plans for this provider</option>';
-            return;
-        }
-
-        const plans = provider.products;
         cabletvPlanSelect.innerHTML = '<option value="">Select a plan</option>';
-        plans.forEach(plan => {
-            const option = document.createElement('option');
-            option.value = plan.plan_code;
-            option.textContent = `${plan.name} - ₦${plan.selling_price}`;
-            cabletvPlanSelect.appendChild(option);
-        });
+
+        if (providerData) {
+            for (const [productType, plans] of Object.entries(providerData)) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = productType;
+
+                plans.forEach(plan => {
+                    const option = document.createElement('option');
+                    option.value = plan.plan_code;
+                    option.textContent = `${plan.name} - ₦${plan.price}`;
+                    option.dataset.price = plan.price;
+                    optgroup.appendChild(option);
+                });
+
+                cabletvPlanSelect.appendChild(optgroup);
+            }
+        } else {
+            cabletvPlanSelect.innerHTML = '<option value="">No plans available for this provider</option>';
+        }
     }
 
     function resetCableTVForm() {
