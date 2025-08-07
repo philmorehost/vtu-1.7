@@ -4,8 +4,12 @@
  * Simplified admin interface for managing API providers using modules
  */
 
-$title = 'Modular API Manager';
-require_once('../includes/header.php');
+<?php
+/**
+ * Modular API Manager
+ * Simplified admin interface for managing API providers using modules
+ */
+
 require_once('../../includes/db.php');
 require_once('../../apis/ApiProviderRegistry.php');
 
@@ -152,6 +156,9 @@ try {
 
 // Get available provider modules
 $availableProviders = ApiProviderRegistry::getProviderList();
+
+$title = 'Modular API Manager';
+require_once('../includes/header.php');
 ?>
 
 <div class="container mx-auto px-4 py-6">

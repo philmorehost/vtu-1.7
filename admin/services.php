@@ -1,6 +1,5 @@
 <?php
-$title = 'Manage Services';
-require_once('includes/header.php');
+<?php
 require_once('../includes/db.php');
 
 // Handle AJAX requests
@@ -95,6 +94,9 @@ try {
 } catch (Exception $e) {
     $networks = [];
 }
+
+$title = 'Manage Services';
+require_once('includes/header.php');
 ?>
 
 <!-- Page Header -->
