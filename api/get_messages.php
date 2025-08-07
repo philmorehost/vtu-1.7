@@ -27,7 +27,7 @@ try {
     // Let's assume the admin's user_id for chat purposes is a special value, e.g., 1,
     // or we can check against the admins table. A simpler way is to check sender's admin status.
 
-    // Check if sender is an admin by seeing if their ID is in the admins table.
+    // A message is from the admin if its sender_id is 1.
     $stmt = $pdo->prepare("
         SELECT
             c.id,
@@ -35,9 +35,8 @@ try {
             c.recipient_id,
             c.message,
             c.created_at,
-            (a.id IS NOT NULL) as is_admin_sender
+            (c.sender_id = 1) as is_admin_sender
         FROM chat c
-        LEFT JOIN admins a ON c.sender_id = a.id
         WHERE (c.sender_id = ? AND c.recipient_id = 1) OR (c.sender_id = 1 AND c.recipient_id = ?)
         ORDER BY c.created_at ASC
     ");
