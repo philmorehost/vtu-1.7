@@ -141,7 +141,7 @@ function processSingleAirtime($pdo, $userId, $phoneNumber, $amount, $network, $s
     ];
 
     $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, description, amount, status, service_details, source, balance_before, balance_after, batch_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->execute([$userId, 'Airtime', $description, -$cost, 'Pending', json_encode($serviceDetails), $source, $balanceBefore, $balanceAfter, $batchId]);
+    $stmt->execute([$userId, $currentNetwork . ' Airtime', $description, -$cost, 'Pending', json_encode($serviceDetails), $source, $balanceBefore, $balanceAfter, $batchId]);
     $transactionId = $pdo->lastInsertId();
 
     // Process with gateway

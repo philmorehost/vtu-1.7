@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $success = $stmt->execute([
             $userId,
-            'Electricity',
+            $disco . ' Electricity',
             $description,
             -$cost,
             'Pending',

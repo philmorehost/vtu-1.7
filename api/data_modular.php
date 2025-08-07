@@ -128,7 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $success = $stmt->execute([
             $userId, 
-            'Data', 
+            $dataPlan['network_name'] . ' Data',
             $description, 
             -$cost, 
             'Pending',

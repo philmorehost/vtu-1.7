@@ -114,9 +114,9 @@ try {
         $stmt = $pdo->prepare("
             INSERT INTO transactions 
             (user_id, type, description, amount, status, service_details, source, balance_before, balance_after) 
-            VALUES (?, 'Gift Card', ?, ?, 'Completed', ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, 'Completed', ?, ?, ?, ?)
         ");
-        $stmt->execute([$userId, $description, -$totalAmount, $serviceDetails, $source, $balance_before, $balance_after]);
+        $stmt->execute([$userId, $cardType . ' Gift Card', $description, -$totalAmount, $serviceDetails, $source, $balance_before, $balance_after]);
         
         // Log API transaction
         $logStmt = $pdo->prepare("

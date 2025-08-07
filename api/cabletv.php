@@ -67,8 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $description = "{$plan['description']} subscription for {$smartCardNumber}";
             $serviceDetails = json_encode(['provider' => $provider, 'smartCardNumber' => $smartCardNumber, 'plan' => $planId]);
-            $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, description, amount, status, service_details, source, balance_before, balance_after) VALUES (?, 'Cable TV', ?, ?, 'Completed', ?, ?, ?, ?)");
-            $stmt->execute([$userId, $description, -$plan['price'], $serviceDetails, $source, $balance_before, $balance_after]);
+            $stmt = $pdo->prepare("INSERT INTO transactions (user_id, type, description, amount, status, service_details, source, balance_before, balance_after) VALUES (?, ?, ?, ?, 'Completed', ?, ?, ?, ?)");
+            $stmt->execute([$userId, $provider . ' Cable TV', $description, -$plan['price'], $serviceDetails, $source, $balance_before, $balance_after]);
 
             $pdo->commit();
 
