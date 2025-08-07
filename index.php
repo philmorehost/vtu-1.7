@@ -365,18 +365,10 @@ if (!isset($_SESSION['user_id'])) {
                         </div>
 
                         <div class="mb-6">
-                            <label for="data-type" class="block text-gray-700 text-sm font-medium mb-2">Select Data Type</label>
-                            <select id="data-type" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">Select a data type</option>
-                                <!-- Data types will be loaded dynamically based on network -->
-                            </select>
-                        </div>
-
-                        <div class="mb-6">
                             <label for="data-plan" class="block text-gray-700 text-sm font-medium mb-2">Select Data Plan</label>
                             <select id="data-plan" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select a plan</option>
-                                <!-- Data plans will be loaded dynamically based on network and data type -->
+                                <!-- Data plans will be loaded dynamically based on network -->
                             </select>
                         </div>
 
