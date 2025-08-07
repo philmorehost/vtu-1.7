@@ -492,7 +492,6 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'data':
                 dataFormSection.classList.remove('hidden');
                 resetDataForm();
-                loadDataPlans(dataDetectedNetworkDisplay.textContent);
                 break;
             case 'airtime':
                 airtimeFormSection.classList.remove('hidden');
