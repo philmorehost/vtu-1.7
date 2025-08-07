@@ -39,9 +39,16 @@ require_once('includes/header.php');
                 <h4 class="font-semibold text-gray-800">How to Set Up a Cronjob</h4>
                 <p class="text-xs text-gray-600 mt-1">A cronjob is a scheduled task. You need to set one up to handle automated tasks like transaction requeries.</p>
                 <p class="text-xs text-gray-600 mt-2">In your cPanel or hosting control panel, find the "Cron Jobs" section. Add a new cron job with the following settings:</p>
+                <?php
+                    // Try to determine the base URL dynamically
+                    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+                    $domainName = $_SERVER['HTTP_HOST'];
+                    $base_url = $protocol . $domainName;
+                    $cron_url = $base_url . '/cron.php';
+                ?>
                 <ul class="list-disc list-inside text-xs text-gray-600 mt-1">
                     <li><strong>Common Settings:</strong> Once every 5 minutes (*/5 * * * *) is recommended.</li>
-                    <li><strong>Command:</strong> <code class="bg-gray-200 p-1 rounded">wget -q -O - "<?= htmlspecialchars($settings['cronjob_path'] ?? 'https://yourwebsite.com/cron.php') ?>" >/dev/null 2>&1</code></li>
+                    <li><strong>Command:</strong> <code class="bg-gray-200 p-1 rounded break-all">wget -q -O - "<?= htmlspecialchars($settings['cronjob_path'] ?: $cron_url) ?>" >/dev/null 2>&1</code></li>
                 </ul>
                 <p class="text-xs text-gray-600 mt-1">Replace the URL with the full path to your cron file if you change it.</p>
             </div>
