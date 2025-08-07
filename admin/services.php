@@ -141,12 +141,15 @@ require_once('includes/header.php');
     <button class="tab-btn px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap" data-tab="bulksms">
         <i class="fas fa-sms mr-2"></i>Bulk SMS
     </button>
+    <button class="tab-btn px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap" data-tab="recharge">
+        <i class="fas fa-credit-card mr-2"></i>Recharge Card
+    </button>
     <button class="tab-btn px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent hover:border-gray-300 whitespace-nowrap" data-tab="giftcard">
         <i class="fas fa-gift mr-2"></i>Gift Card
     </button>
 </div>
 
-<?php foreach (['data', 'airtime', 'cabletv', 'electricity', 'exam', 'betting', 'bulksms', 'giftcard'] as $serviceType): ?>
+<?php foreach (['data', 'airtime', 'cabletv', 'electricity', 'exam', 'betting', 'bulksms', 'recharge', 'giftcard'] as $serviceType): ?>
 <!-- <?= ucfirst($serviceType) ?> Tab -->
 <div id="<?= $serviceType ?>-tab" class="tab-content <?= $serviceType !== 'data' ? 'hidden' : '' ?>">
     <?php if ($viewMode === 'list'): ?>
