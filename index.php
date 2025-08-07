@@ -357,11 +357,20 @@ if (!isset($_SESSION['user_id'])) {
                             </select>
                         </div>
 
+                        <div class="mb-4">
+                            <label for="data-type-select" class="block text-gray-700 text-sm font-medium mb-2">Select Data Type</label>
+                            <select id="data-type-select" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="all">All Types</option>
+                                <option value="sme">SME</option>
+                                <option value="cg">Corporate Gifting</option>
+                                <option value="gifting">Gifting</option>
+                            </select>
+                        </div>
+
                         <div class="mb-6">
                             <label for="data-plan" class="block text-gray-700 text-sm font-medium mb-2">Select Data Plan</label>
                             <select id="data-plan" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">Select a plan</option>
-                                <!-- Data plans will be loaded dynamically based on network -->
+                                <option value="">Select a data type first</option>
                             </select>
                         </div>
 
@@ -495,17 +504,20 @@ if (!isset($_SESSION['user_id'])) {
 
                         <div class="mb-4">
                             <label for="meter-number" class="block text-gray-700 text-sm font-medium mb-2">Meter Number</label>
-                            <input type="text" id="meter-number" placeholder="Enter meter number" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <div class="flex">
+                                <input type="text" id="meter-number" placeholder="Enter meter number" class="flex-grow p-3 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                                <button type="button" id="verify-meter-btn" class="bg-blue-500 text-white px-4 rounded-r-lg font-semibold hover:bg-blue-600">Verify</button>
+                            </div>
+                        </div>
+                        <div id="electricity-verification-result" class="hidden bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                            <p class="text-sm text-gray-600 mb-2"><i class="fas fa-check-circle text-green-500 mr-1"></i> Verification Successful!</p>
+                            <p class="mb-1"><span class="font-semibold">Customer Name:</span> <span id="verified-electricity-customer-name"></span></p>
+                            <p class="mb-1"><span class="font-semibold">Address:</span> <span id="verified-electricity-address"></span></p>
                         </div>
                         <div class="mb-4">
                             <label for="disco-provider" class="block text-gray-700 text-sm font-medium mb-2">Electricity Provider (Disco)</label>
                             <select id="disco-provider" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Disco</option>
-                                <option value="ikeja_electric">Ikeja Electric (IE)</option>
-                                <option value="eko_electric">Eko Electric (EKEDC)</option>
-                                <option value="abuja_electric">Abuja Electric (AEDC)</option>
-                                <option value="ibadan_electric">Ibadan Electric (IBEDC)</option>
-                                <!-- Add more as needed -->
                             </select>
                         </div>
                         <div class="mb-6">
@@ -528,9 +540,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="cabletv-provider" class="block text-gray-700 text-sm font-medium mb-2">Cable TV Provider</label>
                             <select id="cabletv-provider" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Provider</option>
-                                <option value="dstv">DSTV</option>
-                                <option value="gotv">GOtv</option>
-                                <option value="startimes">Startimes</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -565,10 +574,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="betting-platform" class="block text-gray-700 text-sm font-medium mb-2">Betting Platform</label>
                             <select id="betting-platform" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Platform</option>
-                                <option value="bet9ja">Bet9ja</option>
-                                <option value="sportybet">SportyBet</option>
-                                <option value="nairabet">NairaBet</option>
-                                <option value="betking">BetKing</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -591,9 +596,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="exam-type" class="block text-gray-700 text-sm font-medium mb-2">Exam Type</label>
                             <select id="exam-type" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Exam</option>
-                                <option value="waec">WAEC</option>
-                                <option value="neco">NECO</option>
-                                <option value="jamb">JAMB</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -739,20 +741,12 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="recharge-card-network" class="block text-gray-700 text-sm font-medium mb-2">Network</label>
                             <select id="recharge-card-network" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Network</option>
-                                <option value="MTN">MTN</option>
-                                <option value="Glo">Glo</option>
-                                <option value="Airtel">Airtel</option>
-                                <option value="9mobile">9mobile</option>
                             </select>
                         </div>
                         <div class="mb-4">
                             <label for="recharge-card-amount" class="block text-gray-700 text-sm font-medium mb-2">Amount (₦)</label>
                             <select id="recharge-card-amount" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Amount</option>
-                                <option value="100">₦100</option>
-                                <option value="200">₦200</option>
-                                <option value="500">₦500</option>
-                                <option value="1000">₦1000</option>
                             </select>
                         </div>
                         <div class="mb-4">
@@ -849,6 +843,30 @@ if (!isset($_SESSION['user_id'])) {
             </button>
         </div>
     </nav>
+
+    <!-- Sender ID Registration Modal -->
+    <div id="sender-id-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-gray-800">Register Sender ID</h3>
+                <button id="close-sender-id-modal" class="text-gray-500 hover:text-gray-700 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="sender-id-form">
+                <div class="mb-4">
+                    <label for="new-sender-id" class="block text-gray-700 text-sm font-medium mb-2">Sender ID</label>
+                    <input type="text" id="new-sender-id" name="sender_id" class="w-full p-3 rounded-lg border border-gray-300" required maxlength="11">
+                    <p class="text-xs text-gray-500 mt-1">Max 11 characters. Alphanumeric.</p>
+                </div>
+                <div class="mb-4">
+                    <label for="sample-message" class="block text-gray-700 text-sm font-medium mb-2">Sample Message</label>
+                    <textarea id="sample-message" name="sample_message" class="w-full p-3 rounded-lg border border-gray-300 h-24" required>This is a sample message from [Your Brand] to test the new sender ID.</textarea>
+                </div>
+                <button type="submit" class="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700">Submit for Review</button>
+            </form>
+        </div>
+    </div>
 
     <!-- More Services Modal -->
     <div id="more-services-modal" class="modal-overlay hidden">

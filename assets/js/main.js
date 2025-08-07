@@ -589,62 +589,103 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function populateElectricityProviders(serviceOptions) {
         if (!discoProviderSelect) return;
-        
-        discoProviderSelect.innerHTML = '<option value="">Select Electricity Provider</option>';
-        
-        // Add electricity providers based on service options
-        for (const [providerName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const option = document.createElement('option');
-                option.value = plans[0].plan_code;
-                option.textContent = providerName;
-                discoProviderSelect.appendChild(option);
+        discoProviderSelect.innerHTML = '<option value="">Select Provider</option>';
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const providerName in serviceOptions) {
+                const providerData = serviceOptions[providerName];
+                if (providerData.products && providerData.products.length > 0) {
+                    const option = document.createElement('option');
+                    option.value = providerData.products[0].plan_code;
+                    option.textContent = providerName;
+                    discoProviderSelect.appendChild(option);
+                }
             }
         }
     }
 
     async function populateCableTVProviders(serviceOptions) {
         if (!cabletvProviderSelect) return;
-        
-        cabletvProviderSelect.innerHTML = '<option value="">Select Cable TV Provider</option>';
-        
-        // Add cable TV providers
-        for (const [providerName, plans] of Object.entries(serviceOptions)) {
-            if (plans && plans.length > 0) {
-                const optgroup = document.createElement('optgroup');
-                optgroup.label = providerName;
-                
-                plans.forEach(plan => {
+        cabletvProviderSelect.innerHTML = '<option value="">Select Provider</option>';
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const providerName in serviceOptions) {
+                const providerData = serviceOptions[providerName];
+                if (providerData.products && providerData.products.length > 0) {
                     const option = document.createElement('option');
-                    option.value = plan.plan_code;
-                    option.textContent = `${plan.name} - ₦${plan.price}`;
-                    option.dataset.price = plan.price;
-                    optgroup.appendChild(option);
-                });
-                
-                cabletvProviderSelect.appendChild(optgroup);
+                    option.value = providerData.products[0].plan_code.split('_')[0]; // e.g., 'dstv' from 'dstv_padi'
+                    option.textContent = providerName;
+                    cabletvProviderSelect.appendChild(option);
+                }
             }
         }
     }
 
     async function populateBettingProviders(serviceOptions) {
-        // Implementation for betting providers if needed
-        console.log('Betting providers:', serviceOptions);
+        if (!bettingPlatformSelect) return;
+        bettingPlatformSelect.innerHTML = '<option value="">Select Platform</option>';
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const platformName in serviceOptions) {
+                const platformData = serviceOptions[platformName];
+                if (platformData.products && platformData.products.length > 0) {
+                    const option = document.createElement('option');
+                    option.value = platformData.products[0].plan_code;
+                    option.textContent = platformName;
+                    bettingPlatformSelect.appendChild(option);
+                }
+            }
+        }
     }
 
     async function populateExamBoards(serviceOptions) {
-        // Implementation for exam boards if needed
-        console.log('Exam boards:', serviceOptions);
+        if (!examTypeSelect) return;
+        examTypeSelect.innerHTML = '<option value="">Select Exam</option>';
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const examName in serviceOptions) {
+                const examData = serviceOptions[examName];
+                if (examData.products && examData.products.length > 0) {
+                    const product = examData.products[0];
+                    const option = document.createElement('option');
+                    option.value = product.plan_code;
+                    option.textContent = product.name;
+                    option.dataset.price = product.selling_price;
+                    examTypeSelect.appendChild(option);
+                }
+            }
+        }
     }
 
     async function populateGiftCardProviders(serviceOptions) {
-        // Implementation for gift card providers if needed
-        console.log('Gift card providers:', serviceOptions);
+        // Future implementation
     }
 
     async function populateRechargeCardProviders(serviceOptions) {
-        // Implementation for recharge card providers if needed
-        console.log('Recharge card providers:', serviceOptions);
+        if (!rechargeCardNetworkSelect || !rechargeCardAmountSelect) return;
+
+        rechargeCardNetworkSelect.innerHTML = '<option value="">Select Network</option>';
+        rechargeCardAmountSelect.innerHTML = '<option value="">Select Network First</option>';
+
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const networkName in serviceOptions) {
+                const option = document.createElement('option');
+                option.value = networkName;
+                option.textContent = networkName;
+                rechargeCardNetworkSelect.appendChild(option);
+            }
+        }
+
+        rechargeCardNetworkSelect.addEventListener('change', () => {
+            const selectedNetwork = rechargeCardNetworkSelect.value;
+            rechargeCardAmountSelect.innerHTML = '<option value="">Select Amount</option>';
+            if (selectedNetwork && serviceOptions[selectedNetwork]) {
+                const products = serviceOptions[selectedNetwork].products;
+                products.forEach(product => {
+                    const option = document.createElement('option');
+                    option.value = product.plan_code;
+                    option.textContent = `₦${product.name}`;
+                    option.dataset.price = product.selling_price;
+                    rechargeCardAmountSelect.appendChild(option);
+                });
+            }
+        });
     }
 
     // --- Network Detection Logic - Now using dynamic API ---
@@ -679,36 +720,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Data Vending Form Logic ---
-    const dataPlans = {
-        'MTN': [
-            { value: 'mtn-1gb-300', text: '1GB for ₦300 (1 Day)', price: 300, data: '1GB', duration: '1 Day' },
-            { value: 'mtn-2gb-500', text: '2GB for ₦500 (7 Days)', price: 500, data: '2GB', duration: '7 Days' },
-            { value: 'mtn-5gb-1000', text: '5GB for ₦1000 (30 Days)', price: 1000, data: '5GB', duration: '30 Days' }
-        ],
-        'Glo': [
-            { value: 'glo-1gb-250', text: '1GB for ₦250 (1 Day)', price: 250, data: '1GB', duration: '1 Day' },
-            { value: 'glo-3gb-700', text: '3GB for ₦700 (14 Days)', price: 700, data: '3GB', duration: '14 Days' },
-            { value: 'glo-10gb-2000', text: '10GB for ₦2000 (30 Days)', price: 2000, data: '10GB', duration: '30 Days' }
-        ],
-        'Airtel': [
-            { value: 'airtel-1.5gb-350', text: '1.5GB for ₦350 (2 Days)', price: 350, data: '1.5GB', duration: '2 Days' },
-            { value: 'airtel-4gb-900', text: '4GB for ₦900 (30 Days)', price: 900, data: '4GB', duration: '30 Days' }
-        ],
-        '9mobile': [
-            { value: '9mobile-750mb-200', text: '750MB for ₦200 (1 Day)', price: 200, data: '750MB', duration: '1 Day' },
-            { value: '9mobile-2.5gb-600', text: '2.5GB for ₦600 (7 Days)', price: 600, data: '2.5GB', duration: '7 Days' }
-        ]
-    };
+    const dataTypeSelect = document.getElementById('data-type-select');
+    let currentNetworkPlans = [];
 
-    function loadDataPlans(network) {
+    function loadDataPlans(networkName, dataType = 'all') {
+        const dataService = serviceData['data'];
+        if (networkName && dataService && dataService.networks[networkName]) {
+            currentNetworkPlans = dataService.networks[networkName].products;
+        } else {
+            currentNetworkPlans = [];
+        }
+
         dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
-        (dataPlans[network] || []).forEach(plan => {
-            const option = document.createElement('option');
-            option.value = plan.value;
-            option.textContent = plan.text;
-            dataPlanSelect.appendChild(option);
+
+        const filteredPlans = currentNetworkPlans.filter(plan => {
+            if (dataType === 'all') return true;
+            return plan.name.toLowerCase().includes(dataType);
         });
+
+        if (filteredPlans.length > 0) {
+            filteredPlans.forEach(plan => {
+                const option = document.createElement('option');
+                option.value = plan.plan_code;
+                option.textContent = `${plan.name} (${plan.data_size}) - ₦${plan.selling_price}`;
+                option.dataset.price = plan.selling_price;
+                dataPlanSelect.appendChild(option);
+            });
+        } else {
+            dataPlanSelect.innerHTML = '<option value="">No plans for this type</option>';
+        }
     }
+
+    dataTypeSelect.addEventListener('change', () => {
+        const networkName = dataDetectedNetworkDisplay.textContent.toLowerCase();
+        const selectedType = dataTypeSelect.value;
+        const network = Object.values(networkData).find(n => n.display_name.toLowerCase() === networkName);
+        if (network) {
+            loadDataPlans(network.name, selectedType);
+        }
+    });
 
     function getDataRecipients() {
         if (dataBulkPurchaseToggle.checked) {
@@ -720,21 +770,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateDataRecipientCountAndCost() {
+    async function updateDataRecipientCountAndCost() {
         const recipients = getDataRecipients();
         dataRecipientCountDisplay.textContent = recipients.length;
 
-        let currentDetectedNetwork = dataDetectedNetworkDisplay.textContent;
         let selectedNetworkForPlans = dataManualNetworkSelect.value;
 
         if (dataBulkPurchaseToggle.checked) {
             if (!dataNetworkOverrideToggle.checked) {
-                const uniqueNetworks = getUniqueNetworks(recipients);
+                const uniqueNetworks = await getUniqueNetworks(recipients);
                 if (uniqueNetworks.length === 1) {
-                    currentDetectedNetwork = uniqueNetworks[0];
-                    dataDetectedNetworkDisplay.textContent = currentDetectedNetwork;
-                    loadDataPlans(currentDetectedNetwork);
-                    selectedNetworkForPlans = currentDetectedNetwork;
+                    const networkName = uniqueNetworks[0];
+                    dataDetectedNetworkDisplay.textContent = networkName;
+                    loadDataPlans(networkName);
+                    selectedNetworkForPlans = networkName;
                 } else if (uniqueNetworks.length > 1) {
                     dataDetectedNetworkDisplay.textContent = 'Mixed/Manual Required';
                     dataNetworkOverrideToggle.checked = true;
@@ -747,30 +796,35 @@ document.addEventListener('DOMContentLoaded', () => {
                     selectedNetworkForPlans = '';
                 }
             } else {
-                // Manual override is active, use selected manual network
                 selectedNetworkForPlans = dataManualNetworkSelect.value;
                 loadDataPlans(selectedNetworkForPlans);
             }
         } else { // Single purchase mode
             if (!dataNetworkOverrideToggle.checked) {
                 const singleNumber = dataPhoneNumberInput.value.trim();
-                const detected = detectNetwork(singleNumber);
-                dataDetectedNetworkDisplay.textContent = detected;
-                if (detected !== 'N/A' && detected !== 'Unknown') {
-                    loadDataPlans(detected);
+                if (singleNumber.length >= 11) {
+                    const networkInfo = await detectNetwork(singleNumber);
+                    const detected = networkInfo ? networkInfo.display_name : 'Unknown';
+                    dataDetectedNetworkDisplay.textContent = detected;
+                    if (detected !== 'N/A' && detected !== 'Unknown') {
+                        loadDataPlans(networkInfo.name);
+                    } else {
+                        dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
+                    }
+                    selectedNetworkForPlans = networkInfo ? networkInfo.name : detected;
                 } else {
-                    dataPlanSelect.innerHTML = '<option value="">Select a plan</option>';
+                    dataDetectedNetworkDisplay.textContent = 'N/A';
+                    dataPlanSelect.innerHTML = '<option value="">Enter valid number</option>';
                 }
-                selectedNetworkForPlans = detected;
             } else {
-                // Manual override is active, use selected manual network
                 selectedNetworkForPlans = dataManualNetworkSelect.value;
                 loadDataPlans(selectedNetworkForPlans);
             }
         }
 
         const dataPlanValue = dataPlanSelect.value;
-        const selectedPlan = dataPlans[selectedNetworkForPlans]?.find(p => p.value === dataPlanValue);
+        // This part will be replaced later when we remove hardcoded data. For now, it might not work perfectly.
+        const selectedPlan = (dataPlans[selectedNetworkForPlans] || []).find(p => p.value === dataPlanValue);
         const pricePerPlan = selectedPlan ? selectedPlan.price : 0;
 
         const totalCost = pricePerPlan * recipients.length;
@@ -812,42 +866,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function updateAirtimeRecipientCountAndCost() {
+    async function updateAirtimeRecipientCountAndCost() {
         const recipients = getAirtimeRecipients();
         airtimeRecipientCountDisplay.textContent = recipients.length;
 
-        let currentDetectedNetwork = airtimeDetectedNetworkDisplay.textContent;
-        let selectedNetworkForCost = airtimeManualNetworkSelect.value;
-
         if (airtimeBulkPurchaseToggle.checked) {
             if (!airtimeNetworkOverrideToggle.checked) {
-                const uniqueNetworks = getUniqueNetworks(recipients);
+                const uniqueNetworks = await getUniqueNetworks(recipients);
                 if (uniqueNetworks.length === 1) {
-                    currentDetectedNetwork = uniqueNetworks[0];
-                    airtimeDetectedNetworkDisplay.textContent = currentDetectedNetwork;
-                    selectedNetworkForCost = currentDetectedNetwork;
+                    airtimeDetectedNetworkDisplay.textContent = uniqueNetworks[0];
                 } else if (uniqueNetworks.length > 1) {
                     airtimeDetectedNetworkDisplay.textContent = 'Mixed/Manual Required';
                     airtimeNetworkOverrideToggle.checked = true;
                     airtimeManualNetworkSelection.style.display = 'block';
-                    selectedNetworkForCost = ''; // Force manual selection
                 } else {
                     airtimeDetectedNetworkDisplay.textContent = 'N/A';
-                    selectedNetworkForCost = '';
                 }
-            } else {
-                // Manual override is active, use selected manual network
-                selectedNetworkForCost = airtimeManualNetworkSelect.value;
             }
         } else { // Single purchase mode
             if (!airtimeNetworkOverrideToggle.checked) {
                 const singleNumber = airtimePhoneNumberInput.value.trim();
-                const detected = detectNetwork(singleNumber);
-                airtimeDetectedNetworkDisplay.textContent = detected;
-                selectedNetworkForCost = detected;
-            } else {
-                // Manual override is active, use selected manual network
-                selectedNetworkForCost = airtimeManualNetworkSelect.value;
+                 if (singleNumber.length >= 11) {
+                    const networkInfo = await detectNetwork(singleNumber);
+                    airtimeDetectedNetworkDisplay.textContent = networkInfo ? networkInfo.display_name : 'Unknown';
+                } else {
+                    airtimeDetectedNetworkDisplay.textContent = 'N/A';
+                }
             }
         }
 
@@ -895,31 +939,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Cable TV Vending Form Logic ---
-    const cabletvPlans = {
-        'dstv': [
-            { value: 'dstv-padi', text: 'Padi (₦2,950)', price: 2950 },
-            { value: 'dstv-yanga', text: 'Yanga (₦4,150)', price: 4150 },
-            { value: 'dstv-confam', text: 'Confam (₦6,200)', price: 6200 }
-        ],
-        'gotv': [
-            { value: 'gotv-smallie', text: 'Smallie (₦1,100)', price: 1100 },
-            { value: 'gotv-jinja', text: 'Jinja (₦2,700)', price: 2700 },
-            { value: 'gotv-max', text: 'Max (₦4,150)', price: 4150 }
-        ],
-        'startimes': [
-            { value: 'startimes-nova', text: 'Nova (₦900)', price: 900 },
-            { value: 'startimes-basic', text: 'Basic (₦1,700)', price: 1700 },
-            { value: 'startimes-classic', text: 'Classic (₦2,500)', price: 2500 }
-        ]
-    };
+    function loadCableTvPlans(providerCode) {
+        const cableService = serviceData['cabletv'];
+        if (!cableService) return;
 
-    function loadCableTvPlans(provider, availablePackages = null) {
+        const provider = Object.values(cableService.networks).find(p => p.products.some(pr => pr.plan_code.startsWith(providerCode)));
+        if (!provider) {
+            cabletvPlanSelect.innerHTML = '<option value="">No plans for this provider</option>';
+            return;
+        }
+
+        const plans = provider.products;
         cabletvPlanSelect.innerHTML = '<option value="">Select a plan</option>';
-        const plansToLoad = availablePackages || cabletvPlans[provider] || [];
-        plansToLoad.forEach(plan => {
+        plans.forEach(plan => {
             const option = document.createElement('option');
-            option.value = plan.value;
-            option.textContent = plan.text;
+            option.value = plan.plan_code;
+            option.textContent = `${plan.name} - ₦${plan.selling_price}`;
             cabletvPlanSelect.appendChild(option);
         });
     }
@@ -943,16 +978,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Exam Vending Form Logic ---
-    const examPrices = {
-        'waec': 5000,
-        'neco': 4500,
-        'jamb': 3000
-    };
-
     function updateExamTotalCost() {
-        const examType = examTypeSelect.value;
+        const selectedOption = examTypeSelect.options[examTypeSelect.selectedIndex];
+        const pricePerPin = selectedOption ? parseFloat(selectedOption.dataset.price) : 0;
         const quantity = parseInt(examQuantityInput.value) || 0;
-        const pricePerPin = examPrices[examType] || 0;
         const total = pricePerPin * quantity;
         examTotalAmountDisplay.textContent = `₦${total.toFixed(2)}`;
     }
@@ -1099,22 +1128,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Print Recharge Card Form Logic ---
-    const rechargeCardPrices = {
-        'MTN': { '100': 95, '200': 190, '500': 475, '1000': 950 },
-        'Glo': { '100': 94, '200': 188, '500': 470, '1000': 940 },
-        'Airtel': { '100': 96, '200': 192, '500': 480, '1000': 960 },
-        '9mobile': { '100': 93, '200': 186, '500': 465, '1000': 930 }
-    };
-
     function updateRechargeCardTotalCost() {
-        const network = rechargeCardNetworkSelect.value;
-        const amount = rechargeCardAmountSelect.value;
+        const selectedOption = rechargeCardAmountSelect.options[rechargeCardAmountSelect.selectedIndex];
+        const costPerCard = selectedOption ? parseFloat(selectedOption.dataset.price) : 0;
         const quantity = parseInt(rechargeCardQuantityInput.value) || 0;
-        let costPerCard = 0;
-
-        if (network && amount) {
-            costPerCard = rechargeCardPrices[network]?.[amount] || 0;
-        }
         const total = costPerCard * quantity;
         rechargeCardTotalCostDisplay.textContent = `₦${total.toFixed(2)}`;
     }
@@ -1372,16 +1389,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         transactionsToDisplay.forEach(txn => {
             const li = document.createElement('li');
-            li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'px-4', 'hover:bg-gray-50', 'cursor-pointer');
+            li.classList.add('flex', 'justify-between', 'items-center', 'py-3', 'px-4', 'hover:bg-gray-50');
             li.dataset.transactionId = txn.id;
+
+            let statusColor = 'text-gray-500';
+            if (txn.status === 'Completed') statusColor = 'text-green-500';
+            if (txn.status === 'Failed') statusColor = 'text-red-500';
+            if (txn.status === 'Pending') statusColor = 'text-yellow-500';
+
             li.innerHTML = `
-                <div>
+                <div class="flex-grow cursor-pointer" onclick="showTransactionDetailsModal(${txn.id})">
                     <p class="font-medium text-gray-800">${txn.description}</p>
-                    <p class="text-xs text-gray-500">${new Date(txn.date).toLocaleString()}</p>
+                    <p class="text-xs text-gray-500">${new Date(txn.created_at).toLocaleString()} - <span class="${statusColor} font-semibold">${txn.status}</span></p>
                 </div>
-                <p class="font-semibold ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
-                    ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
-                </p>
+                <div class="flex items-center">
+                    <p class="font-semibold mr-4 ${txn.amount < 0 ? 'text-red-600' : 'text-green-600'}">
+                        ${txn.amount < 0 ? '-' : '+'}₦${Math.abs(txn.amount).toFixed(2)}
+                    </p>
+                    ${txn.status === 'Pending' ? `<button class="requery-btn bg-blue-100 text-blue-700 px-2 py-1 text-xs rounded hover:bg-blue-200" data-id="${txn.id}">Re-query</button>` : ''}
+                </div>
             `;
             transactionsList.appendChild(li);
         });
@@ -1391,10 +1417,26 @@ document.addEventListener('DOMContentLoaded', () => {
         prevTransactionsBtn.disabled = currentTransactionPage === 1;
         nextTransactionsBtn.disabled = currentTransactionPage === totalPages;
 
-        document.querySelectorAll('#transactions-list li').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const txnId = e.currentTarget.dataset.transactionId;
-                showTransactionDetailsModal(txnId);
+        document.querySelectorAll('.requery-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const txnId = e.currentTarget.dataset.id;
+                e.currentTarget.disabled = true;
+                e.currentTarget.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const response = await fetch(`../api/transaction-details.php?requery=true&id=${txnId}`);
+                    const result = await response.json();
+                    alert(result.message);
+                    if (result.success) {
+                        fetchUserData();
+                        fetchTransactions();
+                    }
+                } catch (error) {
+                    alert('An error occurred during re-query.');
+                } finally {
+                    e.currentTarget.disabled = false;
+                    e.currentTarget.innerHTML = 'Re-query';
+                }
             });
         });
     }
@@ -2201,7 +2243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isSmartCardVerified = false;
     });
 
-    verifySmartCardBtn.addEventListener('click', () => {
+    verifySmartCardBtn.addEventListener('click', async () => {
         const provider = cabletvProviderSelect.value;
         const smartCardNumber = smartCardNumberInput.value.trim();
 
@@ -2210,24 +2252,68 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        console.log(`Verifying smart card ${smartCardNumber} for ${provider}...`);
+        verifySmartCardBtn.disabled = true;
+        verifySmartCardBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-        if (smartCardNumber.length === 9 && ['dstv', 'gotv', 'startimes'].includes(provider)) {
-            const dummyCustomerName = "Test Customer";
-            const dummyCurrentPlan = "Basic Plan";
-            const dummyAvailablePackages = cabletvPlans[provider];
+        try {
+            const response = await fetch(`../api/cabletv.php?action=verify&provider=${provider}&smart_card_number=${smartCardNumber}`);
+            const result = await response.json();
 
-            verifiedCustomerName.textContent = dummyCustomerName;
-            verifiedSubscriptionStatus.textContent = dummyCurrentPlan;
-            cabletvVerificationResult.classList.remove('hidden');
-            isSmartCardVerified = true;
-            cabletvBuyBtn.disabled = false;
-            loadCableTvPlans(provider, dummyAvailablePackages);
-        } else {
-            alert('Smart card verification failed. Please check the number and try again.');
-            cabletvVerificationResult.classList.add('hidden');
-            isSmartCardVerified = false;
-            cabletvBuyBtn.disabled = true;
+            if (result.success && result.data && result.data.Customer_Name) {
+                verifiedCustomerName.textContent = result.data.Customer_Name;
+                verifiedSubscriptionStatus.textContent = result.data.Current_Bouquet || 'N/A';
+                cabletvVerificationResult.classList.remove('hidden');
+                isSmartCardVerified = true;
+                cabletvBuyBtn.disabled = false;
+            } else {
+                alert(`Verification failed: ${result.message || 'Unknown error'}`);
+                cabletvVerificationResult.classList.add('hidden');
+                isSmartCardVerified = false;
+                cabletvBuyBtn.disabled = true;
+            }
+        } catch (error) {
+            alert('An error occurred during verification.');
+        } finally {
+            verifySmartCardBtn.disabled = false;
+            verifySmartCardBtn.innerHTML = 'Verify Smart Card';
+        }
+    });
+
+    const verifyMeterBtn = document.getElementById('verify-meter-btn');
+    const electricityVerificationResult = document.getElementById('electricity-verification-result');
+    const verifiedElectricityCustomerName = document.getElementById('verified-electricity-customer-name');
+    const verifiedElectricityAddress = document.getElementById('verified-electricity-address');
+
+    verifyMeterBtn.addEventListener('click', async () => {
+        const meterNumber = meterNumberInput.value.trim();
+        const discoCode = discoProviderSelect.value;
+        const meterType = document.querySelector('input[name="electricity-type"]:checked').value;
+
+        if (!meterNumber || !discoCode) {
+            alert('Please select a disco and enter a meter number.');
+            return;
+        }
+
+        verifyMeterBtn.disabled = true;
+        verifyMeterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const response = await fetch(`../api/electricity.php?action=verify&disco_code=${discoCode}&meter_number=${meterNumber}&meter_type=${meterType}`);
+            const result = await response.json();
+
+            if (result.success && result.data && result.data.Customer_Name) {
+                verifiedElectricityCustomerName.textContent = result.data.Customer_Name;
+                verifiedElectricityAddress.textContent = result.data.Address || 'N/A';
+                electricityVerificationResult.classList.remove('hidden');
+            } else {
+                alert(`Verification failed: ${result.message || 'Unknown error'}`);
+                electricityVerificationResult.classList.add('hidden');
+            }
+        } catch (error) {
+            alert('An error occurred during verification.');
+        } finally {
+            verifyMeterBtn.disabled = false;
+            verifyMeterBtn.innerHTML = 'Verify';
         }
     });
 
@@ -2387,6 +2473,44 @@ document.addEventListener('DOMContentLoaded', () => {
             bulksmsScheduleTimeInput.removeAttribute('required');
             bulksmsScheduleDateInput.value = '';
             bulksmsScheduleTimeInput.value = '';
+        }
+    });
+
+    const senderIdModal = document.getElementById('sender-id-modal');
+    const closeSenderIdModalBtn = document.getElementById('close-sender-id-modal');
+    const senderIdForm = document.getElementById('sender-id-form');
+
+    registerSenderIdBtn.addEventListener('click', () => {
+        senderIdModal.classList.remove('hidden');
+    });
+
+    closeSenderIdModalBtn.addEventListener('click', () => {
+        senderIdModal.classList.add('hidden');
+    });
+
+    senderIdForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(senderIdForm);
+        const senderId = formData.get('sender_id');
+        const sampleMessage = formData.get('sample_message');
+
+        try {
+            const response = await fetch('../api/sms_sender_ids.php', {
+                method: 'POST',
+                body: JSON.stringify({ sender_id: senderId, sample_message: sampleMessage }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const result = await response.json();
+
+            if (result.success) {
+                alert('Sender ID submitted for review successfully!');
+                senderIdModal.classList.add('hidden');
+                senderIdForm.reset();
+            } else {
+                alert(`Error: ${result.message}`);
+            }
+        } catch (error) {
+            alert('An error occurred while submitting your request.');
         }
     });
 

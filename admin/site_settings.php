@@ -25,6 +25,28 @@ require_once('includes/header.php');
             <?php endif; ?>
         </div>
         <div>
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="site_favicon">Site Favicon</label>
+            <input type="file" name="site_favicon" id="site_favicon" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+            <p class="text-xs text-gray-500 mt-1">Allowed formats: PNG, JPG, ICO.</p>
+            <?php if (!empty($settings['site_favicon'])): ?>
+                <img src="../<?= htmlspecialchars($settings['site_favicon']) ?>" alt="Site Favicon" class="mt-2 h-16 w-auto" style="max-height: 64px;">
+            <?php endif; ?>
+        </div>
+        <div class="md:col-span-2">
+            <label class="block text-gray-700 text-sm font-bold mb-2" for="cronjob_path">Cronjob Path</label>
+            <input type="text" name="cronjob_path" id="cronjob_path" value="<?= htmlspecialchars($settings['cronjob_path'] ?? '') ?>" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+            <div class="mt-2 p-4 bg-gray-100 rounded-lg">
+                <h4 class="font-semibold text-gray-800">How to Set Up a Cronjob</h4>
+                <p class="text-xs text-gray-600 mt-1">A cronjob is a scheduled task. You need to set one up to handle automated tasks like transaction requeries.</p>
+                <p class="text-xs text-gray-600 mt-2">In your cPanel or hosting control panel, find the "Cron Jobs" section. Add a new cron job with the following settings:</p>
+                <ul class="list-disc list-inside text-xs text-gray-600 mt-1">
+                    <li><strong>Common Settings:</strong> Once every 5 minutes (*/5 * * * *) is recommended.</li>
+                    <li><strong>Command:</strong> <code class="bg-gray-200 p-1 rounded">wget -q -O - "<?= htmlspecialchars($settings['cronjob_path'] ?? 'https://yourwebsite.com/cron.php') ?>" >/dev/null 2>&1</code></li>
+                </ul>
+                <p class="text-xs text-gray-600 mt-1">Replace the URL with the full path to your cron file if you change it.</p>
+            </div>
+        </div>
+        <div>
             <label class="block text-gray-700 text-sm font-bold mb-2" for="session_timeout">Session Timeout (minutes)</label>
             <input type="number" name="session_timeout" id="session_timeout" value="<?= htmlspecialchars($settings['session_timeout'] ?? 30) ?>" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
         </div>

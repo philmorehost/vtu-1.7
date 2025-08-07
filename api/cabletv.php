@@ -84,7 +84,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid request.']);
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'verify') {
+    require_once('../includes/db.php');
+    require_once('../includes/ModularApiGateway.php');
+
+    $smartCardNumber = $_GET['smart_card_number'] ?? null;
+    $providerCode = $_GET['provider'] ?? null;
+
+    if (!$smartCardNumber || !$providerCode) {
+        echo json_encode(['success' => false, 'message' => 'Smart card number and provider code are required.']);
+        exit();
+    }
+
+    $modularGateway = new ModularApiGateway($pdo);
+    $result = $modularGateway->verifyCableTV($smartCardNumber, $providerCode);
+
+    echo json_encode($result);
+
 } else {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method or action.']);
 }
 ?>

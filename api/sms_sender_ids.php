@@ -11,12 +11,19 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? '';
-    
+    $json_data = file_get_contents("php://input");
+    $data = json_decode($json_data, true);
+
+    if (empty($data) && !empty($_POST)) {
+        $data = $_POST;
+    }
+
+    $action = $data['action'] ?? 'register';
+
     switch ($action) {
         case 'register':
-            $senderId = trim($_POST['sender_id'] ?? '');
-            $sampleMessage = trim($_POST['sample_message'] ?? '');
+            $senderId = trim($data['sender_id'] ?? '');
+            $sampleMessage = trim($data['sample_message'] ?? '');
             
             if (!$senderId || !$sampleMessage) {
                 echo json_encode(['success' => false, 'message' => 'Sender ID and sample message are required.']);

@@ -16,22 +16,28 @@ if (!$transaction_id) {
 }
 
 try {
-    $stmt = $pdo->prepare("
-        SELECT t.*, u.name AS user_name, u.email AS user_email
-        FROM transactions t
-        JOIN users u ON t.user_id = u.id
-        WHERE t.id = ? AND t.user_id = ?
-    ");
-    $stmt->execute([$transaction_id, $user_id]);
-    $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($transaction) {
-        echo json_encode($transaction);
+    if (isset($_GET['requery']) && $_GET['requery'] === 'true') {
+        require_once('../includes/ModularApiGateway.php');
+        $gateway = new ModularApiGateway($pdo);
+        $result = $gateway->requeryTransaction($transaction_id);
+        echo json_encode($result);
     } else {
-        echo json_encode(['error' => 'Transaction not found']);
-    }
+        $stmt = $pdo->prepare("
+            SELECT t.*, u.name AS user_name, u.email AS user_email
+            FROM transactions t
+            JOIN users u ON t.user_id = u.id
+            WHERE t.id = ? AND t.user_id = ?
+        ");
+        $stmt->execute([$transaction_id, $user_id]);
+        $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
 
-} catch (PDOException $e) {
+        if ($transaction) {
+            echo json_encode(['success' => true, 'data' => $transaction]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Transaction not found']);
+        }
+    }
+} catch (Exception $e) {
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

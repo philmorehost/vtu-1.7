@@ -78,7 +78,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid request.']);
     }
+} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'verify') {
+    require_once('../includes/db.php');
+    require_once('../includes/ModularApiGateway.php');
+
+    $meterNumber = $_GET['meter_number'] ?? null;
+    $discoCode = $_GET['disco_code'] ?? null;
+    $meterType = $_GET['meter_type'] ?? 'prepaid';
+
+    if (!$meterNumber || !$discoCode) {
+        echo json_encode(['success' => false, 'message' => 'Meter number and disco code are required.']);
+        exit();
+    }
+
+    $modularGateway = new ModularApiGateway($pdo);
+    $result = $modularGateway->verifyElectricity($meterNumber, $discoCode, $meterType);
+
+    echo json_encode($result);
+
 } else {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method.']);
+    echo json_encode(['success' => false, 'message' => 'Invalid request method or action.']);
 }
 ?>

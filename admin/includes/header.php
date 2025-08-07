@@ -97,6 +97,10 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                         <i class="fas fa-tachometer-alt w-5 h-5 mr-0 md:mr-3 text-blue-400 group-hover:text-blue-300"></i>
                         <span class="font-medium" x-show="!sidebarCollapsed">Dashboard</span>
                     </a>
+                    <a href="/admin/transaction_summary.php" class="nav-item flex items-center py-3 px-2 rounded-lg transition-all duration-200 hover:bg-gray-700 group">
+                        <i class="fas fa-chart-pie w-5 h-5 mr-0 md:mr-3 text-indigo-400 group-hover:text-indigo-300"></i>
+                        <span class="font-medium" x-show="!sidebarCollapsed">Summary</span>
+                    </a>
                     <a href="/admin/users.php" class="nav-item flex items-center py-3 px-2 rounded-lg transition-all duration-200 hover:bg-gray-700 group">
                         <i class="fas fa-users w-5 h-5 mr-0 md:mr-3 text-green-400 group-hover:text-green-300"></i>
                         <span class="font-medium" x-show="!sidebarCollapsed">Users</span>
@@ -178,6 +182,10 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
                             <a href="/admin/apimanager/api_gateway_manager.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
                                 <i class="fas fa-code w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
                                 <span x-show="!sidebarCollapsed">API Manager</span>
+                            </a>
+                             <a href="/admin/api_routing.php" class="flex items-center py-2 px-2 rounded-md transition duration-200 hover:bg-gray-600 text-sm">
+                                <i class="fas fa-route w-4 h-4 mr-0 md:mr-2 text-gray-400"></i>
+                                <span x-show="!sidebarCollapsed">Modular API Routing</span>
                             </a>
                         </div>
                     </div>

@@ -108,6 +108,20 @@ abstract class BaseApiProvider {
     public function checkBalance() {
         throw new Exception('Balance check not supported by this provider');
     }
+
+    /**
+     * Verify a smart card number for Cable TV
+     */
+    public function verifySmartCard($smartCardNumber, $providerCode) {
+        throw new Exception('Smart card verification not supported by this provider');
+    }
+
+    /**
+     * Verify a meter number for Electricity
+     */
+    public function verifyMeterNumber($meterNumber, $discoCode, $meterType = 'prepaid') {
+        throw new Exception('Meter number verification not supported by this provider');
+    }
     
     /**
      * Verify transaction status

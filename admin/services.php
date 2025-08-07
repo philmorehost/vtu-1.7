@@ -189,8 +189,8 @@ try {
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['data_size']) ?></td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= htmlspecialchars($product['validity']) ?></td>
                         <?php endif; ?>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['amount'], 2) ?></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['selling_price'], 2) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['amount'] ?? 0, 2) ?></td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₦<?= number_format($product['selling_price'] ?? 0, 2) ?></td>
                         <?php if ($serviceType === 'airtime'): ?>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?= $product['discount_percentage'] ?>%</td>
                         <?php endif; ?>
@@ -249,11 +249,11 @@ try {
                 <div class="mb-4">
                     <div class="flex justify-between text-sm text-gray-600 mb-1">
                         <span>Cost Price:</span>
-                        <span>₦<?= number_format($product['amount'], 2) ?></span>
+                        <span>₦<?= number_format($product['amount'] ?? 0, 2) ?></span>
                     </div>
                     <div class="flex justify-between text-lg font-semibold text-gray-900">
                         <span>Selling Price:</span>
-                        <span>₦<?= number_format($product['selling_price'], 2) ?></span>
+                        <span>₦<?= number_format($product['selling_price'] ?? 0, 2) ?></span>
                     </div>
                     <?php if ($serviceType === 'airtime' && $product['discount_percentage'] > 0): ?>
                     <div class="text-sm text-green-600 mt-1">

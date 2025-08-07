@@ -83,6 +83,59 @@ class VtpassProvider extends BaseApiProvider {
             return $this->formatResponse(false, 'Error: ' . $e->getMessage());
         }
     }
+
+    public function verifySmartCard($smartCardNumber, $providerCode) {
+        $this->validateConfig();
+
+        $data = [
+            'billersCode' => $smartCardNumber,
+            'serviceID' => $providerCode,
+        ];
+
+        try {
+            $result = $this->makeRequest('merchant-verify', $data, 'POST');
+
+            if ($result['http_code'] === 200) {
+                $response = $result['response'];
+                if (isset($response['content']) && !isset($response['content']['error'])) {
+                    return $this->formatResponse(true, 'Verification successful', $response['content']);
+                } else {
+                    return $this->formatResponse(false, $response['content']['error'] ?? 'Verification failed');
+                }
+            } else {
+                return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code']);
+            }
+        } catch (Exception $e) {
+            return $this->formatResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function verifyMeterNumber($meterNumber, $discoCode, $meterType = 'prepaid') {
+        $this->validateConfig();
+
+        $data = [
+            'billersCode' => $meterNumber,
+            'serviceID' => $discoCode,
+            'type' => $meterType,
+        ];
+
+        try {
+            $result = $this->makeRequest('merchant-verify', $data, 'POST');
+
+            if ($result['http_code'] === 200) {
+                $response = $result['response'];
+                if (isset($response['content']) && !isset($response['content']['error'])) {
+                    return $this->formatResponse(true, 'Verification successful', $response['content']);
+                } else {
+                    return $this->formatResponse(false, $response['content']['error'] ?? 'Verification failed');
+                }
+            } else {
+                return $this->formatResponse(false, 'HTTP Error: ' . $result['http_code']);
+            }
+        } catch (Exception $e) {
+            return $this->formatResponse(false, 'Error: ' . $e->getMessage());
+        }
+    }
     
     public function purchaseData($phoneNumber, $planCode, $network = null) {
         $this->validateConfig();

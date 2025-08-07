@@ -127,6 +127,40 @@ class ModularApiGateway {
     /**
      * Process cable TV payment using module
      */
+    public function verifyCableTV($smartCardNumber, $providerCode) {
+        $providerConfig = $this->getProvider('cable_tv');
+        if (!$providerConfig) {
+            return ['success' => false, 'message' => 'No API provider available for Cable TV service'];
+        }
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'base_url' => $providerConfig['base_url']
+            ]);
+            return $provider->verifySmartCard($smartCardNumber, $providerCode);
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Verification service error: ' . $e->getMessage()];
+        }
+    }
+
+    public function verifyElectricity($meterNumber, $discoCode, $meterType) {
+        $providerConfig = $this->getProvider('electricity');
+        if (!$providerConfig) {
+            return ['success' => false, 'message' => 'No API provider available for Electricity service'];
+        }
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'base_url' => $providerConfig['base_url']
+            ]);
+            return $provider->verifyMeterNumber($meterNumber, $discoCode, $meterType);
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Verification service error: ' . $e->getMessage()];
+        }
+    }
+
     public function payCableTV($smartCardNumber, $productCode, $customerId = null) {
         $providerConfig = $this->getProvider('cable_tv');
         
@@ -264,6 +298,61 @@ class ModularApiGateway {
     /**
      * Log transaction for audit and tracking
      */
+    public function requeryTransaction($transactionId) {
+        try {
+            $this->pdo->beginTransaction();
+
+            $stmt = $this->pdo->prepare("SELECT * FROM transactions WHERE id = ? AND status = 'Pending' FOR UPDATE");
+            $stmt->execute([$transactionId]);
+            $transaction = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$transaction) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Transaction not found or not pending.'];
+            }
+
+            $serviceDetails = json_decode($transaction['service_details'], true);
+            $providerConfig = $this->getProvider($transaction['type'], $serviceDetails['network_id'] ?? null);
+
+            if (!$providerConfig) {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'No provider found for this service.'];
+            }
+
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+            ]);
+
+            $result = $provider->verifyTransaction($transaction['id']); // Assuming provider needs our transaction ID
+
+            if ($result['success'] && isset($result['data']['status'])) {
+                $newStatus = $result['data']['status']; // e.g., 'Completed' or 'Failed'
+
+                if ($newStatus !== 'Pending') {
+                    $updateStmt = $this->pdo->prepare("UPDATE transactions SET status = ? WHERE id = ?");
+                    $updateStmt->execute([$newStatus, $transactionId]);
+
+                    if ($newStatus === 'Failed') {
+                        // Refund user
+                        $refundAmount = abs($transaction['amount']);
+                        $refundStmt = $this->pdo->prepare("UPDATE users SET wallet_balance = wallet_balance + ? WHERE id = ?");
+                        $refundStmt->execute([$refundAmount, $transaction['user_id']]);
+                    }
+                }
+                $this->pdo->commit();
+                return ['success' => true, 'message' => 'Transaction status updated.', 'new_status' => $newStatus];
+            } else {
+                $this->pdo->rollBack();
+                return ['success' => false, 'message' => 'Failed to requery transaction from provider.', 'data' => $result];
+            }
+        } catch (Exception $e) {
+            $this->pdo->rollBack();
+            error_log("Requery Error: " . $e->getMessage());
+            return ['success' => false, 'message' => 'System error during requery.'];
+        }
+    }
+
     private function logTransaction($serviceType, $providerId, $result, $requestData) {
         try {
             $stmt = $this->pdo->prepare("

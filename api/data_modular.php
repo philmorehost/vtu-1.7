@@ -155,9 +155,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $pdo->commit();
 
-        // Log API response for debugging
-        error_log("Modular Data API Response for Transaction $transactionId: " . json_encode($apiResponse));
-
         echo json_encode([
             'success' => ($finalStatus === 'Completed'),
             'message' => $responseMessage,
