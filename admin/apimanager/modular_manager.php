@@ -307,6 +307,18 @@ require_once('../includes/header.php');
                                 <input type="checkbox" name="services[]" value="bulk_sms" class="mr-2">
                                 <span class="text-sm">Bulk SMS</span>
                             </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="services[]" value="recharge_card" class="mr-2">
+                                <span class="text-sm">Recharge Card</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="services[]" value="gift_card" class="mr-2">
+                                <span class="text-sm">Gift Card</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="services[]" value="betting" class="mr-2">
+                                <span class="text-sm">Betting</span>
+                            </label>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4">
