@@ -151,6 +151,14 @@ try {
             }
             break;
             
+        case 'get_exam_cards':
+            file_put_contents('exam_debug.log', "Reached get_exam_cards case\n", FILE_APPEND);
+            require_once('../includes/ModularApiGateway.php');
+            $gateway = new ModularApiGateway($pdo);
+            $result = $gateway->getExamCards();
+            echo json_encode($result);
+            break;
+
         default:
             echo json_encode(['success' => false, 'message' => 'Invalid action']);
     }

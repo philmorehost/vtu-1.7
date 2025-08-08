@@ -13,10 +13,16 @@ try {
     echo "Starting modular API provider system migration...\n";
 
     // Update api_providers table to include provider_module field
-    $sql = "ALTER TABLE api_providers 
-            ADD COLUMN IF NOT EXISTS provider_module VARCHAR(100) DEFAULT NULL AFTER name,
-            ADD COLUMN IF NOT EXISTS config_fields TEXT DEFAULT NULL AFTER headers";
-    $pdo->exec($sql);
+    try {
+        $pdo->exec("ALTER TABLE api_providers ADD COLUMN provider_module VARCHAR(100) DEFAULT NULL AFTER name");
+    } catch (PDOException $e) {
+        // Ignore if column already exists
+    }
+    try {
+        $pdo->exec("ALTER TABLE api_providers ADD COLUMN config_fields TEXT DEFAULT NULL AFTER headers");
+    } catch (PDOException $e) {
+        // Ignore if column already exists
+    }
     echo "✓ Updated api_providers table with module support\n";
 
     // Create new api_provider_routes table (simplified routing)

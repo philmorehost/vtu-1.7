@@ -500,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'exam':
                 examFormSection.classList.remove('hidden');
                 resetExamForm();
-                await populateExamBoards(serviceOptions);
+                await populateExamBoards();
                 break;
             case 'bulksms':
                 bulksmsFormSection.classList.remove('hidden');
@@ -619,39 +619,58 @@ document.addEventListener('DOMContentLoaded', () => {
     async function populateBettingProviders(serviceOptions) {
         if (!bettingPlatformSelect) return;
         bettingPlatformSelect.innerHTML = '<option value="">Select Platform</option>';
-        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
-            for (const platformName in serviceOptions) {
-                const platformData = serviceOptions[platformName];
-                if (platformData.products && platformData.products.length > 0) {
-                    const option = document.createElement('option');
-                    option.value = platformData.products[0].plan_code;
-                    option.textContent = platformName;
-                    bettingPlatformSelect.appendChild(option);
-                }
-            }
+        if (serviceOptions && serviceOptions['All Networks']) {
+            const products = serviceOptions['All Networks'];
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.plan_code;
+                option.textContent = product.name;
+                bettingPlatformSelect.appendChild(option);
+            });
         }
     }
 
-    async function populateExamBoards(serviceOptions) {
+    async function populateExamBoards() {
         if (!examTypeSelect) return;
-        examTypeSelect.innerHTML = '<option value="">Select Exam</option>';
-        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
-            for (const examName in serviceOptions) {
-                const examData = serviceOptions[examName];
-                if (examData.products && examData.products.length > 0) {
-                    const product = examData.products[0];
+        examTypeSelect.innerHTML = '<option value="">Loading exams...</option>';
+
+        try {
+            const response = await fetch('api/services.php?action=get_exam_cards');
+            const result = await response.json();
+
+            if (result.success) {
+                examTypeSelect.innerHTML = '<option value="">Select Exam</option>';
+                result.data.forEach(card => {
                     const option = document.createElement('option');
-                    option.value = product.plan_code;
-                    option.textContent = product.name;
-                    option.dataset.price = product.selling_price;
+                    option.value = card.card_type_id;
+                    option.textContent = `${card.card_name} - ₦${card.unit_amount}`;
+                    option.dataset.price = card.unit_amount;
                     examTypeSelect.appendChild(option);
-                }
+                });
+            } else {
+                examTypeSelect.innerHTML = `<option value="">${result.message}</option>`;
             }
+        } catch (error) {
+            examTypeSelect.innerHTML = '<option value="">Error loading exams</option>';
         }
     }
 
     async function populateGiftCardProviders(serviceOptions) {
-        // Future implementation
+        if (!giftcardTypeSelect) return;
+        giftcardTypeSelect.innerHTML = '<option value="">Select Gift Card</option>';
+        if (serviceOptions && Object.keys(serviceOptions).length > 0) {
+            for (const providerName in serviceOptions) {
+                const providerData = serviceOptions[providerName];
+                if (providerData && providerData.length > 0) {
+                    providerData.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.plan_code;
+                        option.textContent = product.name;
+                        giftcardTypeSelect.appendChild(option);
+                    });
+                }
+            }
+        }
     }
 
     async function populateRechargeCardProviders(serviceOptions) {
@@ -673,7 +692,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const selectedNetwork = rechargeCardNetworkSelect.value;
             rechargeCardAmountSelect.innerHTML = '<option value="">Select Amount</option>';
             if (selectedNetwork && serviceOptions[selectedNetwork]) {
-                const products = serviceOptions[selectedNetwork].products;
+            const products = serviceOptions[selectedNetwork];
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.plan_code;
@@ -820,9 +839,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const dataPlanValue = dataPlanSelect.value;
-        // This part will be replaced later when we remove hardcoded data. For now, it might not work perfectly.
-        const selectedPlan = (dataPlans[selectedNetworkForPlans] || []).find(p => p.value === dataPlanValue);
-        const pricePerPlan = selectedPlan ? selectedPlan.price : 0;
+    const selectedOption = dataPlanSelect.querySelector(`option[value="${dataPlanValue}"]`);
+    const pricePerPlan = selectedOption ? parseFloat(selectedOption.dataset.price) : 0;
 
         const totalCost = pricePerPlan * recipients.length;
         dataBulkTotalCostDisplay.textContent = `₦${totalCost.toFixed(2)}`;
@@ -1567,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function filterCalculatorTransactionsByDate(startDate, endDate) {
         calculatorFilteredTransactions = transactions.filter(txn => {
-            const txnDate = new Date(txn.date);
+            const txnDate = new Date(txn.created_at);
             const isWithinRange = (!startDate || txnDate >= startDate) && (!endDate || txnDate <= endDate);
             return isWithinRange && txn.amount < 0;
         });
@@ -2045,39 +2063,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    dataVendingForm.addEventListener('submit', (e) => {
+    dataVendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = dataVendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Buying Data...');
+
         const recipients = getDataRecipients();
         const selectedNetwork = dataNetworkOverrideToggle.checked ? dataManualNetworkSelect.value : dataDetectedNetworkDisplay.textContent;
         const dataPlanValue = dataPlanSelect.value;
+        const dataType = document.getElementById('data-type-select').value;
 
         if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !dataPlanValue) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-                formData.append('plan', dataPlanValue);
+        const formData = new FormData();
+        formData.append('phoneNumber', recipients[0]);
+        formData.append('plan', dataPlanValue);
+        formData.append('network', selectedNetwork);
+        formData.append('dataType', dataType);
 
-                fetch('api/data.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetDataForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/data_modular.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetDataForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     // Airtime Form Bulk Purchase Toggle
@@ -2142,39 +2169,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    airtimeVendingForm.addEventListener('submit', (e) => {
+    airtimeVendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = airtimeVendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Buying Airtime...');
+
         const recipients = getAirtimeRecipients();
         const selectedNetwork = airtimeNetworkOverrideToggle.checked ? airtimeManualNetworkSelect.value : airtimeDetectedNetworkDisplay.textContent;
         const amountPerRecipient = parseFloat(airtimeAmountInput.value);
 
         if (recipients.length === 0 || selectedNetwork === 'N/A' || selectedNetwork === 'Unknown' || !amountPerRecipient || amountPerRecipient <= 0) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
-                formData.append('amount', amountPerRecipient);
+        const formData = new FormData();
+        formData.append('phoneNumber', recipients[0]); // Sending the first for simplicity
+        formData.append('amount', amountPerRecipient);
 
-                fetch('api/airtime.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetAirtimeForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/airtime.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetAirtimeForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
 
@@ -2190,8 +2223,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    electricityVendingForm.addEventListener('submit', (e) => {
+    electricityVendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = electricityVendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Processing...');
+
         const serviceType = document.querySelector('input[name="electricity-type"]:checked').value;
         const meterNumber = meterNumberInput.value;
         const disco = discoProviderSelect.value;
@@ -2199,35 +2235,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!meterNumber || !disco || !amount || amount <= 0) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('serviceType', serviceType);
-                formData.append('meterNumber', meterNumber);
-                formData.append('disco', disco);
-                formData.append('amount', amount);
+        const formData = new FormData();
+        formData.append('serviceType', serviceType);
+        formData.append('meterNumber', meterNumber);
+        formData.append('disco', disco);
+        formData.append('amount', amount);
 
-                fetch('api/electricity.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        if (data.token) {
-                            electricityTokenInput.value = data.token;
-                        }
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/electricity.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                if (data.token) {
+                    electricityTokenInput.value = data.token;
+                }
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     cabletvProviderSelect.addEventListener('change', () => {
@@ -2320,10 +2359,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    cabletvVendingForm.addEventListener('submit', (e) => {
+    cabletvVendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = cabletvVendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Subscribing...');
+
         if (!isSmartCardVerified) {
             alert('Please verify your smart card first.');
+            if(enableButton) enableButton();
             return;
         }
 
@@ -2333,105 +2376,120 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!provider || !smartCardNumber || !planValue) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('provider', provider);
-                formData.append('smartCardNumber', smartCardNumber);
-                formData.append('plan', planValue);
+        const formData = new FormData();
+        formData.append('provider', provider);
+        formData.append('smartCardNumber', smartCardNumber);
+        formData.append('plan', planValue);
 
-                fetch('api/cabletv.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetCableTVForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/cabletv.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetCableTVForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
-    bettingFundingForm.addEventListener('submit', (e) => {
+    bettingFundingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = bettingFundingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Funding Wallet...');
+
         const platform = bettingPlatformSelect.value;
         const userId = bettingUserIdInput.value;
         const amount = parseFloat(bettingAmountInput.value);
 
         if (!platform || !userId || !amount || amount <= 0) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('platform', platform);
-                formData.append('userId', userId);
-                formData.append('amount', amount);
+        const formData = new FormData();
+        formData.append('platform', platform);
+        formData.append('userId', userId);
+        formData.append('amount', amount);
 
-                fetch('api/betting.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetBettingForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/betting.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetBettingForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     examTypeSelect.addEventListener('change', updateExamTotalCost);
     examQuantityInput.addEventListener('input', updateExamTotalCost);
 
-    examVendingForm.addEventListener('submit', (e) => {
+    examVendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = examVendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Purchasing...');
+
         const examType = examTypeSelect.value;
         const quantity = parseInt(examQuantityInput.value);
 
-                if (!examType || !quantity || quantity <= 0) {
+        if (!examType || !quantity || quantity <= 0) {
             alert('Please select an exam type and quantity.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('examType', examType);
-                formData.append('quantity', quantity);
+        const formData = new FormData();
+        formData.append('examType', examType);
+        formData.append('quantity', quantity);
 
-                fetch('api/exam.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetExamForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/exam.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetExamForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     smsMessageTextarea.addEventListener('input', calculateSmsUnitsAndCost);
@@ -2493,6 +2551,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     senderIdForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = senderIdForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Submitting...');
+
         const formData = new FormData(senderIdForm);
         const senderId = formData.get('sender_id');
         const sampleMessage = formData.get('sample_message');
@@ -2514,43 +2575,51 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (error) {
             alert('An error occurred while submitting your request.');
+        } finally {
+            if(enableButton) enableButton();
         }
     });
 
-    bulksmsSendingForm.addEventListener('submit', (e) => {
+    bulksmsSendingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = bulksmsSendingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Sending SMS...');
+
         const senderId = smsSenderIdSelect.value;
         const recipients = getRecipientNumbers();
         const message = smsMessageTextarea.value;
 
-                if (!senderId || recipients.length === 0 || !message) {
+        if (!senderId || recipients.length === 0 || !message) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('senderId', senderId);
-                formData.append('recipients', JSON.stringify(recipients));
-                formData.append('message', message);
+        const formData = new FormData();
+        formData.append('senderId', senderId);
+        formData.append('recipients', JSON.stringify(recipients));
+        formData.append('message', message);
 
-                fetch('api/bulksms.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetBulkSMSForm();
-                        fetchTransactions(); // Refresh transactions
+        try {
+            const response = await fetch('api/bulksms.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetBulkSMSForm();
+                fetchTransactions(); // Refresh transactions
             } else {
-                        alert(`Error: ${data.message}`);
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     giftcardBuyBtn.addEventListener('click', () => {
@@ -2578,86 +2647,98 @@ document.addEventListener('DOMContentLoaded', () => {
     giftcardTypeSelect.addEventListener('change', updateGiftCardEstimatedValue);
     giftcardDenominationInput.addEventListener('input', updateGiftCardEstimatedValue);
 
-    giftcardForm.addEventListener('submit', (e) => {
+    giftcardForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = giftcardForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Processing...');
+
         const cardType = giftcardTypeSelect.value;
         const denomination = parseFloat(giftcardDenominationInput.value);
 
-                if (!cardType || !denomination || denomination <= 0) {
+        if (!cardType || !denomination || denomination <= 0) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('cardType', cardType);
-                formData.append('denomination', denomination);
-                formData.append('mode', currentGiftCardMode);
+        const formData = new FormData();
+        formData.append('cardType', cardType);
+        formData.append('denomination', denomination);
+        formData.append('mode', currentGiftCardMode);
 
-                if (currentGiftCardMode === 'sell') {
-                    formData.append('code', giftcardCodeInput.value);
+        if (currentGiftCardMode === 'sell') {
+            formData.append('code', giftcardCodeInput.value);
             if (giftcardImageInput.files.length > 0) {
-                        formData.append('image', giftcardImageInput.files[0]);
+                formData.append('image', giftcardImageInput.files[0]);
             }
         }
 
-                fetch('api/giftcard.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetGiftCardForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        try {
+            const response = await fetch('api/giftcard.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetGiftCardForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     rechargeCardNetworkSelect.addEventListener('change', updateRechargeCardTotalCost);
     rechargeCardAmountSelect.addEventListener('change', updateRechargeCardTotalCost);
     rechargeCardQuantityInput.addEventListener('input', updateRechargeCardTotalCost);
 
-    rechargeCardPrintingForm.addEventListener('submit', (e) => {
+    rechargeCardPrintingForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const submitButton = rechargeCardPrintingForm.querySelector('button[type="submit"]');
+        const enableButton = window.disableButtonOnSubmit(submitButton, 'Printing...');
+
         const network = rechargeCardNetworkSelect.value;
         const amount = rechargeCardAmountSelect.value;
         const quantity = parseInt(rechargeCardQuantityInput.value);
 
-                if (!network || !amount || !quantity || quantity <= 0) {
+        if (!network || !amount || !quantity || quantity <= 0) {
             alert('Please fill in all details correctly.');
+            if(enableButton) enableButton();
             return;
         }
 
-                const formData = new FormData();
-                formData.append('network', network);
-                formData.append('amount', amount);
-                formData.append('quantity', quantity);
+        const formData = new FormData();
+        formData.append('network', network);
+        formData.append('amount', amount);
+        formData.append('quantity', quantity);
 
-                fetch('api/recharge-card.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert(data.message);
-                        resetRechargeCardForm();
-                        fetchTransactions(); // Refresh transactions
-                    } else {
-                        alert(`Error: ${data.message}`);
+        try {
+            const response = await fetch('api/recharge-card.php', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                resetRechargeCardForm();
+                fetchTransactions(); // Refresh transactions
+            } else {
+                alert(`Error: ${data.message}`);
             }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('An error occurred while processing your request.');
-        });
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request.');
+        } finally {
+            if(enableButton) enableButton();
+        }
     });
 
     moreServicesBtn.addEventListener('click', showMoreServicesModal);
@@ -3170,34 +3251,6 @@ document.addEventListener('DOMContentLoaded', () => {
         shareFundModal.classList.add('hidden');
     });
 
-
-    function showTransactionDetailsModal(transactionId) {
-        fetch(`api/transaction-details.php?id=${transactionId}`)
-            .then(response => response.json())
-            .then(response => {
-                if (response.success) {
-                    const transaction = response.data;
-                    transactionDetailsContent.innerHTML = `
-                        <p><strong>ID:</strong> ${transaction.id}</p>
-                        <p><strong>Type:</strong> ${transaction.type}</p>
-                        <p><strong>Description:</strong> ${transaction.description}</p>
-                        <p><strong>Amount:</strong> ₦${Math.abs(transaction.amount).toFixed(2)}</p>
-                        <p><strong>Balance Before:</strong> ₦${Number(transaction.balance_before).toFixed(2)}</p>
-                        <p><strong>Balance After:</strong> ₦${Number(transaction.balance_after).toFixed(2)}</p>
-                        <p><strong>Date:</strong> ${new Date(transaction.date).toLocaleString()}</p>
-                        <p><strong>Status:</strong> ${transaction.status}</p>
-                    `;
-                    printReceiptBtn.dataset.transactionId = transaction.id;
-                    transactionDetailsModal.classList.remove('hidden');
-                } else {
-                    alert(response.message);
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching transaction details:', error);
-                alert('An error occurred while fetching transaction details.');
-            });
-    }
 
     function fetchNotifications() {
         fetch('api/notifications.php')

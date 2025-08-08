@@ -57,33 +57,12 @@ try {
                     </div>
                 `;
                 transactionElement.addEventListener('click', () => {
-                    showTransactionDetails(tx.id);
+                    showTransactionDetailsModal(tx.id);
                 });
                 container.appendChild(transactionElement);
             });
         }
 
-        function showTransactionDetails(transactionId) {
-            fetch(`api/transaction-details.php?id=${transactionId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.error) {
-                        alert(data.error);
-                        return;
-                    }
-                    const detailsContainer = document.getElementById('transaction-details-content');
-                    detailsContainer.innerHTML = `
-                        <p><strong>ID:</strong> ${data.id}</p>
-                        <p><strong>Type:</strong> ${data.type}</p>
-                        <p><strong>Amount:</strong> NGN ${data.amount}</p>
-                        <p><strong>Date:</strong> ${new Date(data.created_at).toLocaleString()}</p>
-                        <p><strong>Status:</strong> ${data.status}</p>
-                        <p><strong>Description:</strong> ${data.description || 'N/A'}</p>
-                    `;
-                    document.getElementById('print-receipt-btn').dataset.transactionId = data.id;
-                    transactionDetailsModal.classList.remove('hidden');
-                });
-        }
 
         if (viewAllBtn) {
             viewAllBtn.addEventListener('click', function() {

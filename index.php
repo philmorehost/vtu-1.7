@@ -20,6 +20,7 @@ if (!isset($_SESSION['user_id'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.14/jspdf.plugin.autotable.min.js"></script>
     <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/defensive-utils.js"></script>
 </head>
 <body class="min-h-screen flex flex-col">
 
@@ -360,10 +361,9 @@ if (!isset($_SESSION['user_id'])) {
                         <div class="mb-4">
                             <label for="data-type-select" class="block text-gray-700 text-sm font-medium mb-2">Select Data Type</label>
                             <select id="data-type-select" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="all">All Types</option>
-                                <option value="sme">SME</option>
-                                <option value="cg">Corporate Gifting</option>
-                                <option value="gifting">Gifting</option>
+                                <option value="sme-data">SME Data</option>
+                                <option value="cg-data">Corporate Gifting Data</option>
+                                <option value="dd-data">Direct Data</option>
                             </select>
                         </div>
 
@@ -701,10 +701,6 @@ if (!isset($_SESSION['user_id'])) {
                             <label for="giftcard-type" class="block text-gray-700 text-sm font-medium mb-2">Gift Card Type</label>
                             <select id="giftcard-type" class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
                                 <option value="">Select Gift Card</option>
-                                <option value="amazon">Amazon</option>
-                                <option value="apple">Apple iTunes</option>
-                                <option value="google_play">Google Play</option>
-                                <option value="steam">Steam</option>
                             </select>
                         </div>
 
@@ -1266,5 +1262,38 @@ if (!isset($_SESSION['user_id'])) {
     <script src="assets/js/main.js"></script>
     <script src="assets/js/transactions.js"></script>
     <script src="assets/js/custom.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const paymentForm = document.getElementById('payment-notification-form');
+            if(paymentForm) {
+                paymentForm.addEventListener('submit', (e) => {
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    if(submitButton) {
+                        window.disableButtonOnSubmit(submitButton, 'Submitting...');
+                    }
+                });
+            }
+
+            const withdrawForm = document.getElementById('withdraw-form');
+            if(withdrawForm) {
+                withdrawForm.addEventListener('submit', (e) => {
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    if(submitButton) {
+                        window.disableButtonOnSubmit(submitButton, 'Processing...');
+                    }
+                });
+            }
+
+            const shareFundForm = document.getElementById('share-fund-form');
+            if(shareFundForm) {
+                shareFundForm.addEventListener('submit', (e) => {
+                    const submitButton = e.target.querySelector('button[type="submit"]');
+                    if(submitButton) {
+                        window.disableButtonOnSubmit(submitButton, 'Sharing...');
+                    }
+                });
+            }
+        });
+    </script>
 </body>
 </html>

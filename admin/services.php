@@ -485,7 +485,11 @@ function toggleServiceFields(serviceType) {
 // Product Form Submit
 document.getElementById('productForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const formData = new FormData(e.target);
+    const form = e.target;
+    const submitButton = form.querySelector('button[type="submit"]');
+    const enableButton = window.disableButtonOnSubmit(submitButton, 'Saving...');
+
+    const formData = new FormData(form);
     const productId = document.getElementById('productId').value;
     
     formData.append('action', productId ? 'update_product' : 'add_product');
@@ -502,9 +506,11 @@ document.getElementById('productForm').addEventListener('submit', async (e) => {
             location.reload();
         } else {
             alert('Error: ' + result.message);
+            if (enableButton) enableButton();
         }
     } catch (error) {
         alert('Error: ' + error.message);
+        if (enableButton) enableButton();
     }
 });
 

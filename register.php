@@ -13,6 +13,7 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     <title>Register - <?= htmlspecialchars($settings['site_name'] ?? '') ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="assets/js/defensive-utils.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -136,10 +137,11 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
 
         registerButton.disabled = true;
 
-        document.querySelector('form').addEventListener('submit', () => {
-            registerButton.disabled = true;
-            registerButtonText.classList.add('hidden');
-            registerButtonSpinner.classList.remove('hidden');
+        document.querySelector('form').addEventListener('submit', (e) => {
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            if(submitButton) {
+                window.disableButtonOnSubmit(submitButton, 'Registering...');
+            }
         });
 
         togglePassword.addEventListener('click', () => {

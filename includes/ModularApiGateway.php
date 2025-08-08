@@ -82,6 +82,77 @@ class ModularApiGateway {
             ];
         }
     }
+
+    public function fundBetting($customerId, $amount, $platform) {
+        $providerConfig = $this->getProvider('betting');
+
+        if (!$providerConfig) {
+            return [
+                'success' => false,
+                'message' => 'No API provider available for betting service'
+            ];
+        }
+
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'user_id' => $providerConfig['user_id'],
+                'base_url' => $providerConfig['base_url']
+            ]);
+
+            $result = $provider->fundBetting($customerId, $amount, $platform);
+
+            // Log transaction
+            $this->logTransaction('betting', $providerConfig['id'], $result, [
+                'customer_id' => $customerId,
+                'amount' => $amount,
+                'platform' => $platform
+            ]);
+
+            return $result;
+
+        } catch (Exception $e) {
+            error_log("Betting Funding Error: " . $e->getMessage());
+            return [
+                'success' => false,
+                'message' => 'Service temporarily unavailable: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    public function verifyBettingCustomer($customerId, $platform) {
+        $providerConfig = $this->getProvider('betting');
+        if (!$providerConfig) {
+            return ['success' => false, 'message' => 'No API provider available for Betting service'];
+        }
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key'],
+                'secret_key' => $providerConfig['secret_key'],
+                'user_id' => $providerConfig['user_id'],
+                'base_url' => $providerConfig['base_url']
+            ]);
+            return $provider->verifyBettingCustomer($customerId, $platform);
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Verification service error: ' . $e->getMessage()];
+        }
+    }
+
+    public function getExamCards() {
+        $providerConfig = $this->getProvider('exam');
+        if (!$providerConfig) {
+            return ['success' => false, 'message' => 'No API provider available for Exam service'];
+        }
+        try {
+            $provider = ApiProviderRegistry::getProvider($providerConfig['provider_module'], [
+                'api_key' => $providerConfig['api_key']
+            ]);
+            return $provider->getExamCards();
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Service error: ' . $e->getMessage()];
+        }
+    }
     
     /**
      * Process data purchase using module

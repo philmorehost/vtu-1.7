@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
+require_once('../includes/db.php');
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'User not logged in.']);
@@ -16,8 +17,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($cardType && $denomination && is_numeric($denomination) && $denomination > 0 && $mode) {
         $denomination = floatval($denomination);
-        $rates = ['amazon' => ['buy' => 400, 'sell' => 380]]; // Example rates
-        $rate = $rates[$cardType][$mode] ?? 0;
+
+        // Fetch gift card product from the database
+        $stmt = $pdo->prepare("SELECT * FROM service_products WHERE service_type = 'giftcard' AND plan_code = ? AND status = 'active'");
+        $stmt->execute([$cardType]);
+        $giftCardProduct = $stmt->fetch();
+
+        if (!$giftCardProduct) {
+            echo json_encode(['success' => false, 'message' => 'Gift card type not available.']);
+            exit();
+        }
+
+        // amount is the buy rate, selling_price is the sell rate
+        $buy_rate = $giftCardProduct['amount'];
+        $sell_rate = $giftCardProduct['selling_price'];
+
+        $rate = ($mode === 'buy') ? $buy_rate : $sell_rate;
         $value = $denomination * $rate;
 
         if ($value == 0) {

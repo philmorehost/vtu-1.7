@@ -74,6 +74,7 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Set New Password - <?= htmlspecialchars($settings['site_name'] ?? '') ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="assets/js/defensive-utils.js"></script>
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -116,5 +117,13 @@ $settings = $stmt->fetch(PDO::FETCH_ASSOC);
             </div>
         </div>
     </div>
+    <script>
+        document.querySelector('form').addEventListener('submit', (e) => {
+            const submitButton = e.target.querySelector('button[type="submit"]');
+            if(submitButton) {
+                window.disableButtonOnSubmit(submitButton, 'Resetting...');
+            }
+        });
+    </script>
 </body>
 </html>

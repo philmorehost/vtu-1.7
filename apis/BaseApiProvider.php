@@ -122,12 +122,20 @@ abstract class BaseApiProvider {
     public function verifyMeterNumber($meterNumber, $discoCode, $meterType = 'prepaid') {
         throw new Exception('Meter number verification not supported by this provider');
     }
+
+    public function verifyBettingCustomer($customerId, $platform) {
+        throw new Exception('Betting customer verification not supported by this provider');
+    }
     
     /**
      * Verify transaction status
      */
     public function verifyTransaction($transactionId) {
         throw new Exception('Transaction verification not supported by this provider');
+    }
+
+    public function getExamCards() {
+        throw new Exception('Get exam cards not supported by this provider');
     }
     
     /**

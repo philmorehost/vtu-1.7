@@ -333,6 +333,26 @@ try {
 
     echo "Database and tables created/updated successfully.";
 
+    // Run migrations for new installations
+    echo "\nRunning database migrations...\n";
+
+    $migration_files = [
+        'migrate_admin_features.php',
+        'migrate_api_gateway.php',
+        'migrate_modular_api.php',
+        'migrate_add_product_type_column.php'
+    ];
+
+    foreach ($migration_files as $migration_file) {
+        if (file_exists($migration_file)) {
+            echo "\n--- Running migration: $migration_file ---\n";
+            require_once($migration_file);
+        }
+    }
+
+    echo "\nAll migrations have been processed.\n";
+
+
 } catch (PDOException $e) {
     die("ERROR: Could not set up the database. " . $e->getMessage());
 }

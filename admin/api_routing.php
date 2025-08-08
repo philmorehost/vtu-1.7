@@ -1,7 +1,5 @@
 <?php
-$title = 'Modular API Routing';
-require_once('includes/header.php');
-require_once('../includes/db.php');
+require_once('../includes/db.php'); // Moved up for POST handling
 
 // --- Handle POST requests for adding/updating routes ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
@@ -28,14 +26,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         header("Location: api_routing.php");
         exit();
     } catch (Exception $e) {
-        // Simple error handling
-        echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <strong class="font-bold">Error:</strong>
-                <span class="block sm:inline">' . $e->getMessage() . '</span>
-              </div>';
+        $error_message = $e->getMessage();
     }
 }
 
+$title = 'Modular API Routing';
+require_once('includes/header.php');
+
+if (isset($error_message)) {
+    echo '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <strong class="font-bold">Error:</strong>
+            <span class="block sm:inline">' . $error_message . '</span>
+          </div>';
+}
 
 // --- Fetch data for the page ---
 try {

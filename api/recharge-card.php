@@ -1,6 +1,7 @@
 <?php
 header('Content-Type: application/json');
 require_once('../includes/session_config.php');
+require_once('../includes/db.php');
 
 if (!isset($_SESSION['user_id'])) {
     echo json_encode(['success' => false, 'message' => 'User not logged in.']);
@@ -17,8 +18,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($network && $amount && is_numeric($amount) && $quantity && is_numeric($quantity) && $quantity > 0) {
         $amount = floatval($amount);
         $quantity = intval($quantity);
-        $prices = ['100' => 95, '200' => 190, '500' => 475, '1000' => 950];
-        $price = $prices[$amount] ?? 0;
+
+        // Fetch recharge card product from the database
+        $stmt = $pdo->prepare("SELECT * FROM service_products WHERE service_type = 'recharge' AND network_id = (SELECT id FROM networks WHERE name = ?) AND plan_code = ? AND status = 'active'");
+        $stmt->execute([$network, $amount]);
+        $rechargeCardProduct = $stmt->fetch();
+
+        if (!$rechargeCardProduct) {
+            echo json_encode(['success' => false, 'message' => 'Recharge card product not available.']);
+            exit();
+        }
+
+        $price = $rechargeCardProduct['selling_price'];
         $totalCost = $price * $quantity;
 
         if ($totalCost == 0) {

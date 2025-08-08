@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phoneNumber = $_POST['phoneNumber'] ?? null;
     $planCode = $_POST['plan'] ?? null;
     $network = $_POST['network'] ?? null;
+    $dataType = $_POST['dataType'] ?? 'sme-data';
     $source = $_POST['source'] ?? 'Website';
     $batchId = ($source === 'API') ? uniqid('batch_') : null;
 
@@ -133,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $transactionId = $pdo->lastInsertId();
 
         // Use modular API gateway to process data purchase
-        $apiResponse = $modularGateway->purchaseData($phoneNumber, $planCode, $network);
+        $apiResponse = $modularGateway->purchaseData($phoneNumber, $planCode, $network, $dataType);
 
         // Update transaction based on API response
         $finalStatus = $apiResponse['success'] ? 'Completed' : 'Failed';
