@@ -820,9 +820,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const dataPlanValue = dataPlanSelect.value;
-        // This part will be replaced later when we remove hardcoded data. For now, it might not work perfectly.
-        const selectedPlan = (dataPlans[selectedNetworkForPlans] || []).find(p => p.value === dataPlanValue);
-        const pricePerPlan = selectedPlan ? selectedPlan.price : 0;
+        const selectedOption = dataPlanSelect.options[dataPlanSelect.selectedIndex];
+        const pricePerPlan = selectedOption ? (parseFloat(selectedOption.dataset.price) || 0) : 0;
 
         const totalCost = pricePerPlan * recipients.length;
         dataBulkTotalCostDisplay.textContent = `₦${totalCost.toFixed(2)}`;

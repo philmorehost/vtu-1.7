@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     try {
         switch ($_POST['action']) {
             case 'add_product':
-                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status, product_type) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $pdo->prepare("INSERT INTO service_products (service_type, network_id, name, plan_code, amount, selling_price, discount_percentage, validity, data_size, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 $stmt->execute([
                     $_POST['service_type'],
                     $_POST['network_id'] ?: null,
@@ -19,14 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     (float)$_POST['discount_percentage'],
                     $_POST['validity'],
                     $_POST['data_size'],
-                    $_POST['status'],
-                    $_POST['product_type'] ?? null
+                    $_POST['status']
                 ]);
                 echo json_encode(['success' => true, 'message' => 'Service product added successfully']);
                 exit;
                 
             case 'update_product':
-                $stmt = $pdo->prepare("UPDATE service_products SET name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=?, product_type=? WHERE id=?");
+                $stmt = $pdo->prepare("UPDATE service_products SET name=?, plan_code=?, amount=?, selling_price=?, discount_percentage=?, validity=?, data_size=?, status=? WHERE id=?");
                 $stmt->execute([
                     $_POST['name'],
                     $_POST['plan_code'],
@@ -36,7 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     $_POST['validity'],
                     $_POST['data_size'],
                     $_POST['status'],
-                    $_POST['product_type'] ?? null,
                     (int)$_POST['id']
                 ]);
                 echo json_encode(['success' => true, 'message' => 'Service product updated successfully']);
@@ -375,13 +373,6 @@ require_once('includes/header.php');
                             <input type="text" id="productValidity" name="validity" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., 30 days, 1 month">
                         </div>
                     </div>
-                    <!-- Fields for Cable TV -->
-                    <div id="cableTvFields" class="hidden">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700">Cable TV Type / Category</label>
-                            <input type="text" id="productType" name="product_type" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="e.g., Bouquets, Add-ons">
-                        </div>
-                    </div>
                 </div>
                 <div class="mt-6 flex justify-end space-x-3">
                     <button type="button" id="cancelProductBtn" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400">Cancel</button>
@@ -471,14 +462,12 @@ document.getElementById('productServiceType').addEventListener('change', (e) => 
 function toggleServiceFields(serviceType) {
     const dataFields = document.getElementById('dataFields');
     const networkField = document.getElementById('networkField');
-    const cableTvFields = document.getElementById('cableTvFields');
 
     // List of services that require a network provider
     const servicesWithNetwork = ['airtime', 'data', 'bulksms', 'recharge'];
 
     // Show/hide fields based on service type
     dataFields.classList.toggle('hidden', serviceType !== 'data');
-    cableTvFields.classList.toggle('hidden', serviceType !== 'cabletv');
     networkField.classList.toggle('hidden', !servicesWithNetwork.includes(serviceType));
 }
 
@@ -537,7 +526,6 @@ document.querySelectorAll('.edit-product-btn').forEach(btn => {
                 document.getElementById('productStatus').value = product.status;
                 document.getElementById('productDataSize').value = product.data_size || '';
                 document.getElementById('productValidity').value = product.validity || '';
-                document.getElementById('productType').value = product.product_type || '';
                 
                 toggleServiceFields(product.service_type);
                 productModal.classList.remove('hidden');
